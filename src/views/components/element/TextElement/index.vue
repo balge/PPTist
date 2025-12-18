@@ -1,7 +1,6 @@
 <template>
   <div 
     class="editable-element-text" 
-    :class="{ 'lock': elementInfo.lock }"
     :style="{
       top: elementInfo.top + 'px',
       left: elementInfo.left + 'px',
@@ -42,7 +41,7 @@
           :elementId="elementInfo.id"
           :defaultColor="elementInfo.defaultColor"
           :defaultFontName="elementInfo.defaultFontName"
-          :editable="!elementInfo.lock"
+          :editable="true"
           :value="elementInfo.content"
           :style="{
             '--paragraphSpace': `${elementInfo.paragraphSpace === undefined ? 5 : elementInfo.paragraphSpace}px`,
@@ -89,8 +88,12 @@ const elementRef = useTemplateRef<HTMLElement>('elementRef')
 const shadow = computed(() => props.elementInfo.shadow)
 const { shadowStyle } = useElementShadow(shadow)
 
+/**
+ * 处理元素选择事件
+ * @param e 鼠标或触摸事件
+ * @param canMove 是否允许移动
+ */
 const handleSelectElement = (e: MouseEvent | TouchEvent, canMove = true) => {
-  if (props.elementInfo.lock) return
   e.stopPropagation()
 
   props.selectElement(e, props.elementInfo, canMove)
@@ -180,10 +183,6 @@ watch(isHandleElement, () => {
 <style lang="scss" scoped>
 .editable-element-text {
   position: absolute;
-
-  &.lock .element-content {
-    cursor: default;
-  }
 }
 .rotate-wrapper {
   width: 100%;

@@ -21,7 +21,6 @@ import { computed } from 'vue'
 import { ElementTypes, type PPTElement } from '@/types/slides'
 import type { ContextmenuItem } from '@/components/Contextmenu/types'
 
-import useLockElement from '@/hooks/useLockElement'
 import useDeleteElement from '@/hooks/useDeleteElement'
 import useOrderElement from '@/hooks/useOrderElement'
 import useAlignElementToCanvas from '@/hooks/useAlignElementToCanvas'
@@ -69,22 +68,12 @@ const currentElementComponent = computed<unknown>(() => {
 const { orderElement } = useOrderElement()
 const { alignElementToCanvas } = useAlignElementToCanvas()
 const { deleteElement } = useDeleteElement()
-const { unlockElement } = useLockElement()
 const { copyElement, pasteElement, cutElement } = useCopyAndPasteElement()
 
 /**
  * 生成元素右键菜单
  */
 const contextmenus = (): ContextmenuItem[] => {
-  if (props.elementInfo.lock) {
-    return [
-      {
-        text: '解锁',
-        handler: () => unlockElement(props.elementInfo),
-      },
-    ]
-  }
-
   return [
     {
       text: '剪切',

@@ -844,23 +844,6 @@ enum ElementTypes {
    - 组合内的元素作为一个整体移动
    - 保持组合内元素的相对顺序
 
-### 6.7 元素锁定实现
-
-**核心文件**: `hooks/useLockElement.ts`
-
-**实现逻辑**:
-
-1. **锁定元素**:
-
-   - 设置元素的 `lock` 属性为 `true`
-   - 清空选中状态
-   - 锁定后无法选中和操作
-
-2. **解锁元素**:
-   - 移除 `lock` 属性
-   - 如果是组合元素，解锁整个组合
-   - 解锁后自动选中该元素
-
 ### 6.8 鼠标框选实现
 
 **核心文件**: `Canvas/hooks/useMouseSelection.ts`, `Canvas/MouseSelection.vue`

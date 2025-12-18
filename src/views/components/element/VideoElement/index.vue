@@ -1,6 +1,5 @@
 <template>
   <div class="editable-element-video"
-    :class="{ 'lock': elementInfo.lock }"
     :style="{
       top: elementInfo.top + 'px',
       left: elementInfo.left + 'px',
@@ -53,8 +52,12 @@ const props = defineProps<{
 
 const { canvasScale } = storeToRefs(useMainStore())
 
+/**
+ * 处理元素选择事件
+ * @param e 鼠标或触摸事件
+ * @param canMove 是否允许移动
+ */
 const handleSelectElement = (e: MouseEvent | TouchEvent, canMove = true) => {
-  if (props.elementInfo.lock) return
   e.stopPropagation()
 
   props.selectElement(e, props.elementInfo, canMove)
@@ -64,10 +67,6 @@ const handleSelectElement = (e: MouseEvent | TouchEvent, canMove = true) => {
 <style lang="scss" scoped>
 .editable-element-video {
   position: absolute;
-
-  &.lock .handler-border {
-    cursor: default;
-  }
 }
 .rotate-wrapper {
   width: 100%;

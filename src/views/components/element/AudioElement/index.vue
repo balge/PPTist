@@ -1,6 +1,5 @@
 <template>
   <div class="editable-element-audio"
-    :class="{ 'lock': elementInfo.lock }"
     :style="{
       top: elementInfo.top + 'px',
       left: elementInfo.left + 'px',
@@ -84,8 +83,11 @@ const audioPlayerPosition = computed(() => {
   }
 })
 
+/**
+ * 处理元素选择事件
+ * @param e 鼠标或触摸事件
+ */
 const handleSelectElement = (e: MouseEvent | TouchEvent) => {
-  if (props.elementInfo.lock) return
   e.stopPropagation()
 
   props.selectElement(e, props.elementInfo)
@@ -95,10 +97,6 @@ const handleSelectElement = (e: MouseEvent | TouchEvent) => {
 <style lang="scss" scoped>
 .editable-element-audio {
   position: absolute;
-
-  &.lock .audio-icon {
-    cursor: default;
-  }
 }
 .rotate-wrapper {
   width: 100%;

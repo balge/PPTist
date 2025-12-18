@@ -32,11 +32,11 @@ export const enum KEYS {
 }
 
 interface HotkeyItem {
-  type: string
+  type: string;
   children: {
-    label: string
-    value?: string
-  }[] 
+    label: string;
+    value?: string;
+  }[];
 }
 
 export const HOTKEY_DOC: HotkeyItem[] = [
@@ -93,7 +93,6 @@ export const HOTKEY_DOC: HotkeyItem[] = [
     type: '元素操作',
     children: [
       { label: '移动', value: '↑ / ← / ↓ / →' },
-      { label: '锁定', value: 'Ctrl + L' },
       { label: '组合', value: 'Ctrl + G' },
       { label: '取消组合', value: 'Ctrl + Shift + G' },
       { label: '置顶层', value: 'Alt + F' },
@@ -118,9 +117,7 @@ export const HOTKEY_DOC: HotkeyItem[] = [
   },
   {
     type: '图表数据编辑',
-    children: [
-      { label: '聚焦到下一行', value: 'Enter' },
-    ],
+    children: [{ label: '聚焦到下一行', value: 'Enter' }],
   },
   {
     type: '文本编辑',

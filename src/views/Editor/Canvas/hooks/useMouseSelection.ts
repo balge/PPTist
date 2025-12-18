@@ -19,6 +19,10 @@ export default (elementList: Ref<PPTElement[]>, viewportRef: ShallowRef<HTMLElem
   })
 
   // 更新鼠标框选范围
+  /**
+   * 更新鼠标框选范围并根据框选结果更新选中元素
+   * @param e 鼠标事件
+   */
   const updateMouseSelection = (e: MouseEvent) => {
     if (!viewportRef.value) return
 
@@ -146,8 +150,7 @@ export default (elementList: Ref<PPTElement[]>, viewportRef: ShallowRef<HTMLElem
           }
         }
 
-        // 被锁定或被隐藏的元素即使在范围内，也不需要设置为选中状态
-        if (isInclude && !element.lock && !hiddenElementIdList.value.includes(element.id)) inRangeElementList.push(element)
+        if (isInclude && !hiddenElementIdList.value.includes(element.id)) inRangeElementList.push(element)
       }
 
       // 如果范围内有组合元素的成员，需要该组全部成员都处在范围内，才会被设置为选中状态

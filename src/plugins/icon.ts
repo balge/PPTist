@@ -4,8 +4,6 @@ import type { App } from 'vue'
 import {
   PlayOne,
   FullScreenPlay,
-  Lock,
-  Unlock,
   Ppt,
   Format,
   Picture,
@@ -143,14 +141,12 @@ import {
 } from '@icon-park/vue-next'
 
 export interface Icons {
-  [key: string]: typeof PlayOne
+  [key: string]: typeof PlayOne;
 }
 
 export const icons: Icons = {
   IconPlayOne: PlayOne,
   IconFullScreenPlay: FullScreenPlay,
-  IconLock: Lock,
-  IconUnlock: Unlock,
   IconPpt: Ppt,
   IconFormat: Format,
   IconPicture: Picture,
@@ -288,9 +284,13 @@ export const icons: Icons = {
 }
 
 export default {
+  /**
+   * 安装图标组件到应用
+   * @param app 应用实例
+   */
   install(app: App) {
     for (const key of Object.keys(icons)) {
       app.component(key, icons[key])
     }
-  }
+  },
 }

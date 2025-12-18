@@ -1,7 +1,6 @@
 <template>
   <div 
     class="editable-element-shape"
-    :class="{ 'lock': elementInfo.lock }"
     :style="{
       top: elementInfo.top + 'px',
       left: elementInfo.left + 'px',
@@ -74,8 +73,11 @@ const props = defineProps<{
   contextmenus: () => ContextmenuItem[] | null
 }>()
 
+/**
+ * 处理元素选择事件
+ * @param e 鼠标或触摸事件
+ */
 const handleSelectElement = (e: MouseEvent | TouchEvent) => {
-  if (props.elementInfo.lock) return
   e.stopPropagation()
 
   props.selectElement(e, props.elementInfo)
@@ -109,12 +111,6 @@ const path = computed(() => {
 .editable-element-shape {
   position: absolute;
   pointer-events: none;
-
-  &.lock {
-    .line-path, .line-point {
-      cursor: default;
-    }
-  }
 }
 
 .element-content {

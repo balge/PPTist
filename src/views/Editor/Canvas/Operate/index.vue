@@ -15,9 +15,7 @@
       v-if="isSelected"
       :is="currentOperateComponent"
       :elementInfo="elementInfo"
-      :handlerVisible="
-        !elementInfo.lock && (isActiveGroupElement || !isMultiSelect)
-      "
+      :handlerVisible="isActiveGroupElement || !isMultiSelect"
       :rotateElement="rotateElement"
       :scaleElement="scaleElement"
       :dragLineElement="dragLineElement"

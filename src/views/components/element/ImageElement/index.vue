@@ -1,7 +1,6 @@
 <template>
   <div 
     class="editable-element-image"
-    :class="{ 'lock': elementInfo.lock }"
     :style="{
       top: elementInfo.top + 'px',
       left: elementInfo.left + 'px',
@@ -107,8 +106,11 @@ const { clipShape, imgPosition } = useClipImage(imageElement)
 const filters = computed(() => props.elementInfo.filters)
 const { filter } = useFilter(filters)
 
+/**
+ * 处理元素选择事件
+ * @param e 鼠标或触摸事件
+ */
 const handleSelectElement = (e: MouseEvent | TouchEvent) => {
-  if (props.elementInfo.lock) return
   e.stopPropagation()
   props.selectElement(e, props.elementInfo)
 }
@@ -158,10 +160,6 @@ const handleClip = (data: ImageClipedEmitData | null) => {
 <style lang="scss" scoped>
 .editable-element-image {
   position: absolute;
-
-  &.lock .element-content {
-    cursor: default;
-  }
 }
 .rotate-wrapper {
   width: 100%;

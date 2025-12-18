@@ -2,7 +2,6 @@
   <div 
     class="editable-element-table"
     ref="elementRef"
-    :class="{ 'lock': elementInfo.lock }"
     :style="{
       top: elementInfo.top + 'px',
       left: elementInfo.left + 'px',
@@ -32,8 +31,7 @@
         />
         <div 
           class="table-mask" 
-          :class="{ 'lock': elementInfo.lock }"
-          v-if="!editable || elementInfo.lock"
+          v-if="!editable"
           @dblclick="startEdit()"
           @mousedown="$event => handleSelectElement($event)"
           @touchstart="$event => handleSelectElement($event)"
@@ -69,8 +67,11 @@ const elementRef = useTemplateRef<HTMLElement>('elementRef')
 
 const { addHistorySnapshot } = useHistorySnapshot()
 
+/**
+ * 处理元素选择事件
+ * @param e 鼠标或触摸事件
+ */
 const handleSelectElement = (e: MouseEvent | TouchEvent) => {
-  if (props.elementInfo.lock) return
   e.stopPropagation()
 
   props.selectElement(e, props.elementInfo)
@@ -87,8 +88,11 @@ watch(editable, () => {
   mainStore.setDisableHotkeysState(editable.value)
 })
 
+/**
+ * 开始编辑表格
+ */
 const startEdit = () => {
-  if (!props.elementInfo.lock) editable.value = true
+  editable.value = true
 }
 
 // 监听表格元素的尺寸变化，当高度变化时，更新高度到vuex
@@ -165,10 +169,6 @@ const updateSelectedCells = (cells: string[]) => {
 <style lang="scss" scoped>
 .editable-element-table {
   position: absolute;
-
-  &.lock .element-content {
-    cursor: default;
-  }
 }
 .rotate-wrapper {
   width: 100%;
@@ -197,7 +197,7 @@ const updateSelectedCells = (cells: string[]) => {
     transform-origin: 0 0;
   }
 
-  &:hover:not(.lock) {
+  &:hover {
     opacity: .9;
   }
 }

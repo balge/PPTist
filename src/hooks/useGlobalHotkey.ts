@@ -5,7 +5,6 @@ import { ElementOrderCommands } from '@/types/edit'
 import { KEYS } from '@/configs/hotkey'
 
 import useSlideHandler from './useSlideHandler'
-import useLockElement from './useLockElement'
 import useDeleteElement from './useDeleteElement'
 import useCombineElement from './useCombineElement'
 import useCopyAndPasteElement from './useCopyAndPasteElement'
@@ -43,7 +42,6 @@ export default () => {
 
   const { combineElements, uncombineElements } = useCombineElement()
   const { deleteElement } = useDeleteElement()
-  const { lockElement } = useLockElement()
   const { copyElement, cutElement, quickCopyElement } =
     useCopyAndPasteElement()
   const { selectAllElements } = useSelectElement()
@@ -72,10 +70,6 @@ export default () => {
     if (thumbnailsFocus.value) selectAllSlide()
   }
 
-  const lock = () => {
-    if (!editorAreaFocus.value) return
-    lockElement()
-  }
   const combine = () => {
     if (!editorAreaFocus.value) return
     combineElements()
@@ -201,11 +195,6 @@ export default () => {
       if (disableHotkeys.value) return
       e.preventDefault()
       selectAll()
-    }
-    if (ctrlOrMetaKeyActive && key === KEYS.L) {
-      if (disableHotkeys.value) return
-      e.preventDefault()
-      lock()
     }
     if (!shiftKey && ctrlOrMetaKeyActive && key === KEYS.G) {
       if (disableHotkeys.value) return

@@ -1,6 +1,5 @@
 <template>
   <div class="editable-element-chart"
-    :class="{ 'lock': elementInfo.lock }"
     :style="{
       top: elementInfo.top + 'px',
       left: elementInfo.left + 'px',
@@ -56,8 +55,11 @@ const props = defineProps<{
   contextmenus: () => ContextmenuItem[] | null
 }>()
 
+/**
+ * 处理元素选择事件
+ * @param e 鼠标或触摸事件
+ */
 const handleSelectElement = (e: MouseEvent | TouchEvent) => {
-  if (props.elementInfo.lock) return
   e.stopPropagation()
 
   props.selectElement(e, props.elementInfo)
@@ -71,10 +73,6 @@ const openDataEditor = () => {
 <style lang="scss" scoped>
 .editable-element-chart {
   position: absolute;
-
-  &.lock .element-content {
-    cursor: default;
-  }
 }
 .rotate-wrapper {
   width: 100%;
