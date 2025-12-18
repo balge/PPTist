@@ -1,7 +1,11 @@
 import React from 'react'
 import type { AlignmentLineProps } from '@/types/edit'
 
-const AlignmentLine: React.FC<AlignmentLineProps> = ({ type, axis, length }) => {
+interface Props extends AlignmentLineProps {
+  canvasScale: number
+}
+
+const AlignmentLine: React.FC<Props> = ({ type, axis, length, canvasScale }) => {
   const style: React.CSSProperties = {
     position: 'absolute',
     zIndex: 100,
@@ -9,14 +13,14 @@ const AlignmentLine: React.FC<AlignmentLineProps> = ({ type, axis, length }) => 
   }
 
   if (type === 'vertical') {
-    style.left = axis.x
-    style.top = axis.y
+    style.left = axis.x * canvasScale
+    style.top = axis.y * canvasScale
     style.width = 1
-    style.height = length
+    style.height = length * canvasScale
   } else {
-    style.left = axis.x
-    style.top = axis.y
-    style.width = length
+    style.left = axis.x * canvasScale
+    style.top = axis.y * canvasScale
+    style.width = length * canvasScale
     style.height = 1
   }
 

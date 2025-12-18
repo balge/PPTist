@@ -39,10 +39,11 @@ const Canvas: React.FC = () => {
     activeGroupElementId,
     creatingElement,
     creatingCustomShape,
+    gridLinesState,
   } = useMainStore();
-  const { currentSlide, viewportRatio, viewportSize } = useSlidesStore();
+  const { currentSlide } = useSlidesStore();
   const { spaceKeyState } = useKeyboardStore();
-  const { createElement, createCustomShapeElement } = useCreateElement();
+  const { createCustomShapeElement } = useCreateElement();
 
   const containerRef = useRef<HTMLDivElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
@@ -98,7 +99,6 @@ const Canvas: React.FC = () => {
   const { insertElementFromCreateSelection } =
     useInsertFromCreateSelection(viewportRef);
 
-  // Context Menu
   const menus = useMemo(
     () => [
       {
@@ -136,11 +136,6 @@ const Canvas: React.FC = () => {
 
   useContextMenu(containerRef, menus);
 
-  const viewportStyle = {
-    ...viewportStyles,
-    transform: `scale(${canvasScale})`,
-  };
-
   const handleSelectElement = (
     e: React.MouseEvent | React.TouchEvent,
     element: PPTElement,
@@ -154,9 +149,8 @@ const Canvas: React.FC = () => {
     // If clicking on canvas background (not on element)
     if (
       e.target === e.currentTarget ||
-      (e.target as HTMLElement).closest(".canvas-viewport")
+      (e.target as HTMLElement).closest(".viewport-background")
     ) {
-      // If we have active elements, deselect them
       if (activeElementIdList.length > 0) {
         if (!creatingElement) {
           updateMouseSelection(e);
@@ -217,76 +211,112 @@ const Canvas: React.FC = () => {
       onMouseDown={handleContainerMouseDown}
       onDragOver={(e) => e.preventDefault()}
     >
-      <div className="canvas-viewport" ref={viewportRef} style={viewportStyle}>
-        <ViewportBackground />
+      {creatingElement && (
+        <ElementCreateSelection onCreated={insertElementFromCreateSelection} />
+      )}
 
-        <div className="viewport-content">
-          {currentSlide?.elements.map((element, index) => (
-            <React.Fragment key={element.id}>
-              <EditableElement
-                elementInfo={element}
-                elementIndex={index + 1}
-                isMultiSelect={activeElementIdList.length > 1}
-                selectElement={handleSelectElement}
-              />
-              <Operate
-                elementInfo={element}
-                isSelected={activeElementIdList.includes(element.id)}
-                isActive={handleElementId === element.id}
-                isActiveGroupElement={activeGroupElementId === element.id}
-                isMultiSelect={activeElementIdList.length > 1}
-                rotateElement={handleRotateElement}
-                scaleElement={handleScaleElement}
-                dragLineElement={handleDragLineElement}
-                moveShapeKeypoint={handleMoveShapeKeypoint}
-              />
-            </React.Fragment>
+      {creatingCustomShape && (
+        <ShapeCreateCanvas
+          onClose={() =>
+            useMainStore.getState().setCreatingCustomShapeState(false)
+          }
+          onCreated={createCustomShapeElement}
+        />
+      )}
+
+      <div
+        className="viewport-wrapper"
+        style={{
+          width: viewportStyles.width * canvasScale,
+          height: viewportStyles.height * canvasScale,
+          left: viewportStyles.left,
+          top: viewportStyles.top,
+          position: "absolute",
+          boxShadow:
+            "0 0 0 1px rgba(0, 0, 0, 0.01), 0 0 12px 0 rgba(0, 0, 0, 0.1)",
+        }}
+      >
+        <div
+          className="operates"
+          style={{
+            width: "100%",
+            height: "100%",
+            position: "absolute",
+            top: 0,
+            left: 0,
+          }}
+        >
+          <ViewportBackground />
+
+          {alignmentLines.map((line, index) => (
+            <AlignmentLine
+              key={index}
+              type={line.type}
+              axis={line.axis}
+              length={line.length}
+              canvasScale={canvasScale}
+            />
+          ))}
+
+          {activeElementIdList.length > 1 && (
+            <MultiSelectOperate
+              elementList={currentSlide?.elements || []}
+              scaleMultiElement={handleScaleMultiElement}
+            />
+          )}
+
+          {currentSlide?.elements.map((element) => (
+            <Operate
+              key={element.id}
+              elementInfo={element}
+              isSelected={activeElementIdList.includes(element.id)}
+              isActive={handleElementId === element.id}
+              isActiveGroupElement={activeGroupElementId === element.id}
+              isMultiSelect={activeElementIdList.length > 1}
+              rotateElement={handleRotateElement}
+              scaleElement={handleScaleElement}
+              dragLineElement={handleDragLineElement}
+              moveShapeKeypoint={handleMoveShapeKeypoint}
+            />
           ))}
         </div>
 
-        {alignmentLines.map((line, index) => (
-          <AlignmentLine
-            key={index}
-            type={line.type}
-            axis={line.axis}
-            length={line.length}
-          />
-        ))}
+        <div
+          className="viewport"
+          ref={viewportRef}
+          style={{
+            transform: `scale(${canvasScale})`,
+            transformOrigin: "0 0",
+            width: "100%",
+            height: "100%",
+            position: "absolute",
+            top: 0,
+            left: 0,
+          }}
+        >
+          {mouseSelectionVisible && selectionState && (
+            <MouseSelection
+              top={selectionState.top}
+              left={selectionState.left}
+              width={selectionState.width}
+              height={selectionState.height}
+              quadrant={selectionState.quadrant}
+            />
+          )}
 
-        {activeElementIdList.length > 1 && (
-          <MultiSelectOperate
-            elementList={currentSlide?.elements || []}
-            scaleMultiElement={handleScaleMultiElement}
-          />
-        )}
-
-        {mouseSelectionVisible && selectionState && (
-          <MouseSelection
-            top={selectionState.top}
-            left={selectionState.left}
-            width={selectionState.width}
-            height={selectionState.height}
-            quadrant={selectionState.quadrant}
-          />
-        )}
-
-        {creatingElement && (
-          <ElementCreateSelection
-            onCreated={insertElementFromCreateSelection}
-          />
-        )}
-
-        {creatingCustomShape && (
-          <ShapeCreateCanvas
-            onClose={() =>
-              useMainStore.getState().setCreatingCustomShapeState(false)
-            }
-            onCreated={createCustomShapeElement}
-          />
-        )}
-
-        <GridLines />
+          {currentSlide?.elements.map((element, index) => (
+            <EditableElement
+              key={element.id}
+              elementInfo={element}
+              elementIndex={index + 1}
+              isMultiSelect={activeElementIdList.length > 1}
+              selectElement={handleSelectElement}
+            />
+          ))}
+        </div>
       </div>
+
+      {gridLinesState && <GridLines />}
     </div>
   );
 };
