@@ -1,5 +1,5 @@
-import type { Ref, ShallowRef } from 'vue'
-import { useSlidesStore } from '@/store'
+import { type RefObject } from 'react'
+import { useSlidesStore, useMainStore } from '@/store'
 import type { PPTElement, PPTLineElement, PPTVideoElement, PPTAudioElement, PPTChartElement } from '@/types/slides'
 import useHistorySnapshot from '@/hooks/useHistorySnapshot'
 
@@ -15,12 +15,11 @@ const getAngleFromCoordinate = (x: number, y: number) => {
 }
 
 export default (
-  elementList: Ref<PPTElement[]>,
-  viewportRef: ShallowRef<HTMLElement | null>,
-  canvasScale: Ref<number>,
+  elementList: PPTElement[],
+  setElementList: (list: PPTElement[] | ((prev: PPTElement[]) => PPTElement[])) => void,
+  viewportRef: RefObject<HTMLElement>,
 ) => {
   const slidesStore = useSlidesStore()
-
   const { addHistorySnapshot } = useHistorySnapshot()
 
   // 旋转元素
@@ -37,12 +36,14 @@ export default (
     const elWidth = element.width
     const elHeight = element.height
 
+    const canvasScale = useMainStore.getState().canvasScale
+
     // 元素中心点（旋转中心点）
     const centerX = elLeft + elWidth / 2
     const centerY = elTop + elHeight / 2
 
-    if (!viewportRef.value) return
-    const viewportRect = viewportRef.value.getBoundingClientRect()
+    if (!viewportRef.current) return
+    const viewportRect = viewportRef.current.getBoundingClientRect()
 
     const handleMousemove = (e: MouseEvent | TouchEvent) => {
       if (!isMouseDown) return
@@ -51,8 +52,8 @@ export default (
       const currentPageY = e instanceof MouseEvent ? e.pageY : e.changedTouches[0].pageY
       
       // 计算当前鼠标位置相对元素中心点连线的角度（弧度）
-      const mouseX = (currentPageX - viewportRect.left) / canvasScale.value
-      const mouseY = (currentPageY - viewportRect.top) / canvasScale.value
+      const mouseX = (currentPageX - viewportRect.left) / canvasScale
+      const mouseY = (currentPageY - viewportRect.top) / canvasScale
       const x = mouseX - centerX
       const y = centerY - mouseY
 
@@ -70,7 +71,7 @@ export default (
       else if ( angle > 0 && Math.abs(angle - 180) <= sorptionRange ) angle -= (angle - 180)
       else if ( angle < 0 && Math.abs(angle + 180) <= sorptionRange ) angle -= (angle + 180)
 
-      elementList.value = elementList.value.map(el => element.id === el.id ? { ...el, rotate: angle } : el)
+      setElementList((prevList) => prevList.map(el => element.id === el.id ? { ...el, rotate: angle } : el))
     }
 
     const handleMouseup = () => {
@@ -80,7 +81,6 @@ export default (
 
       if (elOriginRotate === angle) return
 
-      slidesStore.updateSlide({ elements: elementList.value })
       addHistorySnapshot()
     }
 

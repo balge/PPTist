@@ -1,0 +1,64 @@
+@import '@/assets/styles/variable.scss';
+@import '@/assets/styles/mixin.scss';
+
+.static-table {
+  position: relative;
+  user-select: none;
+}
+table {
+  width: 100%;
+  position: relative;
+  table-layout: fixed;
+  border-collapse: collapse;
+  border-spacing: 0;
+  border: 0;
+  word-wrap: break-word;
+  user-select: none;
+
+  // CSS variables will be set inline
+
+  &.theme {
+    background-color: #fff;
+
+    tr:nth-child(2n) .cell {
+      background-color: var(--subThemeColor1);
+    }
+    tr:nth-child(2n + 1) .cell {
+      background-color: var(--subThemeColor2);
+    }
+
+    &.row-header {
+      tr:first-child .cell {
+        background-color: var(--themeColor);
+      }
+    }
+    &.row-footer {
+      tr:last-child .cell {
+        background-color: var(--themeColor);
+      }
+    }
+    &.col-header {
+      tr .cell:first-child {
+        background-color: var(--themeColor);
+      }
+    }
+    &.col-footer {
+      tr .cell:last-child {
+        background-color: var(--themeColor);
+      }
+    }
+  }
+
+  .cell {
+    position: relative;
+    white-space: normal;
+    word-wrap: break-word;
+    vertical-align: middle;
+    background-clip: padding-box;
+  }
+
+  .cell-text {
+    padding: 5px;
+    line-height: 1.5;
+  }
+}

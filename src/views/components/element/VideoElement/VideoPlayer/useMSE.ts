@@ -1,17 +1,17 @@
-import { onMounted, type ShallowRef } from 'vue'
+import { useEffect } from 'react'
 
 export default (
   src: string,
-  videoRef: ShallowRef<HTMLVideoElement | null>,
+  videoRef: React.RefObject<HTMLVideoElement | null>,
 ) => {
-  onMounted(() => {
-    if (!videoRef.value) return
+  useEffect(() => {
+    if (!videoRef.current) return
 
     let type = 'normal'
     if (/m3u8(#|\?|$)/i.exec(src)) type = 'hls'
     else if (/.flv(#|\?|$)/i.exec(src)) type = 'flv'
 
-    if (videoRef.value && type === 'hls' && (videoRef.value.canPlayType('application/x-mpegURL') || videoRef.value.canPlayType('application/vnd.apple.mpegURL'))) {
+    if (videoRef.current && type === 'hls' && (videoRef.current.canPlayType('application/x-mpegURL') || videoRef.current.canPlayType('application/vnd.apple.mpegURL'))) {
       type = 'normal'
     }
 
@@ -22,7 +22,11 @@ export default (
       if (Hls && Hls.isSupported()) {
         const hls = new Hls()
         hls.loadSource(src)
-        hls.attachMedia(videoRef.value)
+        hls.attachMedia(videoRef.current)
+        
+        return () => {
+            hls.destroy()
+        }
       }
     }
     else if (type === 'flv') {
@@ -33,9 +37,13 @@ export default (
           type: 'flv',
           url: src,
         })
-        flvPlayer.attachMediaElement(videoRef.value)
+        flvPlayer.attachMediaElement(videoRef.current)
         flvPlayer.load()
+        
+        return () => {
+            flvPlayer.destroy()
+        }
       }
     }
-  })
+  }, [src, videoRef])
 }

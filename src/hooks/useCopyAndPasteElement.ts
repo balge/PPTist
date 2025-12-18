@@ -1,30 +1,35 @@
-import { storeToRefs } from 'pinia'
-import { useMainStore } from '@/store'
+import { useMemo } from 'react'
+import { useMainStore, useSlidesStore } from '@/store'
 import { copyText, readClipboard } from '@/utils/clipboard'
 import { encrypt } from '@/utils/crypto'
 import usePasteTextClipboardData from '@/hooks/usePasteTextClipboardData'
 import useDeleteElement from './useDeleteElement'
 
 export default () => {
-  const mainStore = useMainStore()
-  const { activeElementIdList, activeElementList } = storeToRefs(mainStore)
+  const { activeElementIdList, setEditorareaFocus } = useMainStore()
+  const { currentSlide } = useSlidesStore()
+
+  const activeElementList = useMemo(() => {
+    if (!currentSlide || !currentSlide.elements) return []
+    return currentSlide.elements.filter(element => activeElementIdList.includes(element.id))
+  }, [currentSlide, activeElementIdList])
 
   const { pasteTextClipboardData } = usePasteTextClipboardData()
   const { deleteElement } = useDeleteElement()
 
   // 将选中元素数据加密后复制到剪贴板
   const copyElement = () => {
-    if (!activeElementIdList.value.length) return
+    if (!activeElementIdList.length) return
 
     const text = encrypt(
       JSON.stringify({
         type: 'elements',
-        data: activeElementList.value,
+        data: activeElementList,
       })
     )
 
     copyText(text).then(() => {
-      mainStore.setEditorareaFocus(true)
+      setEditorareaFocus(true)
     })
   }
 

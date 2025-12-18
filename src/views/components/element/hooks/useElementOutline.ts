@@ -1,22 +1,27 @@
-import { computed, type Ref } from 'vue'
+import { useMemo } from 'react'
+import { useMainStore } from '@/store'
 import type { PPTElementOutline } from '@/types/slides'
 
-// 计算边框相关属性值，主要是对默认值的处理
-export default (outline: Ref<PPTElementOutline | undefined>) => {
-  const outlineWidth = computed(() => outline.value?.width ?? 0)
-  const outlineStyle = computed(() => outline.value?.style || 'solid')
-  const outlineColor = computed(() => outline.value?.color || '#d14424')
+export default (outline?: PPTElementOutline) => {
+  const { canvasScale } = useMainStore()
 
-  const strokeDashArray = computed(() => {
-    const size = outlineWidth.value
-    if (outlineStyle.value === 'dashed') return size <= 6 ? `${size * 4.5} ${size * 2}` : `${size * 4} ${size * 1.5}`
-    if (outlineStyle.value === 'dotted') return size <= 6 ? `${size * 1.8} ${size * 1.6}` : `${size * 1.5} ${size * 1.2}`
+  const outlineWidth = useMemo(() => {
+    if (!outline?.width) return 0
+    return outline.width * canvasScale
+  }, [outline?.width, canvasScale])
+
+  const outlineColor = useMemo(() => {
+    return outline?.color || '#000'
+  }, [outline?.color])
+
+  const strokeDashArray = useMemo(() => {
+    if (outline?.style === 'dashed') return '10 6'
+    if (outline?.style === 'dotted') return '2 2'
     return '0 0'
-  })
+  }, [outline?.style])
 
   return {
     outlineWidth,
-    outlineStyle,
     outlineColor,
     strokeDashArray,
   }

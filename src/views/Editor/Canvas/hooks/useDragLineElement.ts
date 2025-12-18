@@ -1,5 +1,3 @@
-import type { Ref } from 'vue'
-import { storeToRefs } from 'pinia'
 import { useKeyboardStore, useMainStore, useSlidesStore } from '@/store'
 import type { PPTElement, PPTLineElement } from '@/types/slides'
 import { OperateLineHandlers } from '@/types/edit'
@@ -10,10 +8,11 @@ interface AdsorptionPoint {
   y: number
 }
 
-export default (elementList: Ref<PPTElement[]>) => {
+export default (
+  elementList: PPTElement[],
+  setElementList: (list: PPTElement[] | ((prev: PPTElement[]) => PPTElement[])) => void,
+) => {
   const slidesStore = useSlidesStore()
-  const { canvasScale } = storeToRefs(useMainStore())
-  const { ctrlOrShiftKeyActive } = storeToRefs(useKeyboardStore())
   const { addHistorySnapshot } = useHistorySnapshot()
 
   // 拖拽线条端点
@@ -25,11 +24,14 @@ export default (elementList: Ref<PPTElement[]>) => {
     const startPageX = e.pageX
     const startPageY = e.pageY
 
+    const canvasScale = useMainStore.getState().canvasScale
+    const ctrlOrShiftKeyActive = useKeyboardStore.getState().ctrlOrShiftKeyActive
+
     const adsorptionPoints: AdsorptionPoint[] = []
 
     // 获取所有线条以外的未旋转的元素的8个缩放点作为吸附位置
-    for (let i = 0; i < elementList.value.length; i++) {
-      const _element = elementList.value[i]
+    for (let i = 0; i < elementList.length; i++) {
+      const _element = elementList[i]
       if (_element.type === 'line' || _element.rotate) continue
 
       const left = _element.left
@@ -70,8 +72,8 @@ export default (elementList: Ref<PPTElement[]>) => {
       const currentPageX = e.pageX
       const currentPageY = e.pageY
 
-      const moveX = (currentPageX - startPageX) / canvasScale.value
-      const moveY = (currentPageY - startPageY) / canvasScale.value
+      const moveX = (currentPageX - startPageX) / canvasScale
+      const moveY = (currentPageY - startPageY) / canvasScale
       
       // 线条起点和终点在编辑区域中的位置
       let startX = element.left + element.start[0]
@@ -172,7 +174,7 @@ export default (elementList: Ref<PPTElement[]>) => {
         end[1] = 0
       }
 
-      elementList.value = elementList.value.map(el => {
+      setElementList((prevList) => prevList.map(el => {
         if (el.id === element.id) {
           const newEl: PPTLineElement = {
             ...(el as PPTLineElement),
@@ -182,7 +184,7 @@ export default (elementList: Ref<PPTElement[]>) => {
             end: end,
           }
           if (command === OperateLineHandlers.START || command === OperateLineHandlers.END) {
-            if (ctrlOrShiftKeyActive.value) {
+            if (ctrlOrShiftKeyActive) {
               if (element.broken) newEl.broken = [midX - minX, midY - minY]
               if (element.curve) newEl.curve = [midX - minX, midY - minY]
               if (element.cubic) newEl.cubic = [[c1X - minX, c1Y - minY], [c2X - minX, c2Y - minY]]
@@ -208,7 +210,7 @@ export default (elementList: Ref<PPTElement[]>) => {
           return newEl
         }
         return el
-      })
+      }))
     }
 
     document.onmouseup = e => {
@@ -221,7 +223,6 @@ export default (elementList: Ref<PPTElement[]>) => {
 
       if (startPageX === currentPageX && startPageY === currentPageY) return
 
-      slidesStore.updateSlide({ elements: elementList.value })
       addHistorySnapshot()
     }
   }

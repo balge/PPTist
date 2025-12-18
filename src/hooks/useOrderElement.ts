@@ -1,12 +1,10 @@
-import { storeToRefs } from 'pinia'
 import { useSlidesStore } from '@/store'
 import type { PPTElement } from '@/types/slides'
 import { ElementOrderCommands } from '@/types/edit'
 import useHistorySnapshot from '@/hooks/useHistorySnapshot'
 
 export default () => {
-  const slidesStore = useSlidesStore()
-  const { currentSlide } = storeToRefs(slidesStore)
+  const { currentSlide, updateSlide } = useSlidesStore()
 
   const { addHistorySnapshot } = useHistorySnapshot()
 
@@ -193,16 +191,18 @@ export default () => {
    * @param command 调整命令：上移、下移、置顶、置底
    */
   const orderElement = (element: PPTElement, command: ElementOrderCommands) => {
+    if (!currentSlide) return
+    
     let newElementList
     
-    if (command === ElementOrderCommands.UP) newElementList = moveUpElement(currentSlide.value.elements, element)
-    else if (command === ElementOrderCommands.DOWN) newElementList = moveDownElement(currentSlide.value.elements, element)
-    else if (command === ElementOrderCommands.TOP) newElementList = moveTopElement(currentSlide.value.elements, element)
-    else if (command === ElementOrderCommands.BOTTOM) newElementList = moveBottomElement(currentSlide.value.elements, element)
+    if (command === ElementOrderCommands.UP) newElementList = moveUpElement(currentSlide.elements, element)
+    else if (command === ElementOrderCommands.DOWN) newElementList = moveDownElement(currentSlide.elements, element)
+    else if (command === ElementOrderCommands.TOP) newElementList = moveTopElement(currentSlide.elements, element)
+    else if (command === ElementOrderCommands.BOTTOM) newElementList = moveBottomElement(currentSlide.elements, element)
 
     if (!newElementList) return
 
-    slidesStore.updateSlide({ elements: newElementList })
+    updateSlide({ elements: newElementList })
     addHistorySnapshot()
   }
 

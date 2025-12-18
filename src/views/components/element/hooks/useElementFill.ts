@@ -1,13 +1,13 @@
 import type { PPTShapeElement } from '@/types/slides'
-import { computed, type Ref } from 'vue'
+import { useMemo } from 'react'
 
 // 计算元素的填充样式
-export default (element: Ref<PPTShapeElement>, source: string) => {
-  const fill = computed(() => {
-    if (element.value.pattern) return `url(#${source}-pattern-${element.value.id})`
-    if (element.value.gradient) return `url(#${source}-gradient-${element.value.id})`
-    return element.value.fill || 'none'
-  })
+export default (element: PPTShapeElement, source: string) => {
+  const fill = useMemo(() => {
+    if (element.pattern) return `url(#${source}-pattern-${element.id})`
+    if (element.gradient) return `url(#${source}-gradient-${element.id})`
+    return element.fill || 'none'
+  }, [element.pattern, element.gradient, element.fill, element.id, source])
 
   return {
     fill,

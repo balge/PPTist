@@ -1,24 +1,22 @@
-import { fileURLToPath, URL } from 'node:url'
+import { fileURLToPath, URL } from "node:url";
 
-import { defineConfig } from 'vite'
-import vue from '@vitejs/plugin-vue'
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  base: '',
-  plugins: [
-    vue(),
-  ],
+  base: "",
+  plugins: [react()],
   server: {
-    host: '127.0.0.1',
+    host: "127.0.0.1",
     port: 5173,
     proxy: {
-      '/api': {
-        target: 'https://server.pptist.cn',
+      "/api": {
+        target: "https://server.pptist.cn",
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ''),
-      }
-    }
+        rewrite: (path) => path.replace(/^\/api/, ""),
+      },
+    },
   },
   css: {
     preprocessorOptions: {
@@ -26,13 +24,13 @@ export default defineConfig({
         additionalData: `
           @import '@/assets/styles/variable.scss';
           @import '@/assets/styles/mixin.scss';
-        `
+        `,
       },
     },
   },
   resolve: {
     alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url))
-    }
-  }
-})
+      "@": fileURLToPath(new URL("./src", import.meta.url)),
+    },
+  },
+});

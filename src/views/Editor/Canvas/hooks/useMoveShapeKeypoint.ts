@@ -1,5 +1,4 @@
-import type { Ref } from 'vue'
-import { useSlidesStore } from '@/store'
+import { useMainStore, useSlidesStore } from '@/store'
 import type { PPTElement, PPTShapeElement } from '@/types/slides'
 import useHistorySnapshot from '@/hooks/useHistorySnapshot'
 import { SHAPE_PATH_FORMULAS } from '@/configs/shapes'
@@ -13,11 +12,10 @@ interface ShapePathData {
 }
 
 export default (
-  elementList: Ref<PPTElement[]>,
-  canvasScale: Ref<number>,
+  elementList: PPTElement[],
+  setElementList: (list: PPTElement[] | ((prev: PPTElement[]) => PPTElement[])) => void,
 ) => {
   const slidesStore = useSlidesStore()
-
   const { addHistorySnapshot } = useHistorySnapshot()
 
   const moveShapeKeypoint = (e: MouseEvent | TouchEvent, element: PPTShapeElement, index = 0) => {
@@ -25,6 +23,7 @@ export default (
     if (isTouchEvent && (!e.changedTouches || !e.changedTouches[0])) return
 
     let isMouseDown = true
+    const canvasScale = useMainStore.getState().canvasScale
   
     const startPageX = isTouchEvent ? e.changedTouches[0].pageX : e.pageX
     const startPageY = isTouchEvent ? e.changedTouches[0].pageY : e.pageY
@@ -51,10 +50,10 @@ export default (
 
       const currentPageX = e instanceof MouseEvent ? e.pageX : e.changedTouches[0].pageX
       const currentPageY = e instanceof MouseEvent ? e.pageY : e.changedTouches[0].pageY
-      const moveX = (currentPageX - startPageX) / canvasScale.value
-      const moveY = (currentPageY - startPageY) / canvasScale.value
+      const moveX = (currentPageX - startPageX) / canvasScale
+      const moveY = (currentPageY - startPageY) / canvasScale
 
-      elementList.value = elementList.value.map(el => {
+      setElementList((prevList) => prevList.map(el => {
         if (el.id === element.id && shapePathData) {
           const { baseSize, originPos, min, max, relative } = shapePathData
           const shapeElement = el as PPTShapeElement
@@ -88,7 +87,7 @@ export default (
           }
         }
         return el
-      })
+      }))
     }
 
     const handleMouseup = (e: MouseEvent | TouchEvent) => {
@@ -104,7 +103,6 @@ export default (
 
       if (startPageX === currentPageX && startPageY === currentPageY) return
 
-      slidesStore.updateSlide({ elements: elementList.value })
       addHistorySnapshot()
     }
 

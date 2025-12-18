@@ -1,26 +1,24 @@
-import { computed } from 'vue'
-import { storeToRefs } from 'pinia'
+import { useMemo } from 'react'
 import { useMainStore } from '@/store'
 
 export default () => {
-  const mainStore = useMainStore()
-  const { canvasPercentage, canvasScale, canvasDragged } = storeToRefs(mainStore)
+  const { canvasPercentage, canvasScale, canvasDragged, setCanvasPercentage, setCanvasDragged } = useMainStore()
 
-  const canvasScalePercentage = computed(() => Math.round(canvasScale.value * 100) + '%')
+  const canvasScalePercentage = useMemo(() => Math.round(canvasScale * 100) + '%', [canvasScale])
 
   /**
    * 缩放画布百分比
    * @param command 缩放命令：放大、缩小
    */
   const scaleCanvas = (command: '+' | '-') => {
-    let percentage = canvasPercentage.value
+    let percentage = canvasPercentage
     const step = 5
     const max = 200
     const min = 30
     if (command === '+' && percentage <= max) percentage += step
     if (command === '-' && percentage >= min) percentage -= step
 
-    mainStore.setCanvasPercentage(percentage)
+    setCanvasPercentage(percentage)
   }
 
   /**
@@ -29,16 +27,16 @@ export default () => {
    * @param value 目标画布缩放比例
    */
   const setCanvasScalePercentage = (value: number) => {
-    const percentage = Math.round(value / canvasScale.value * canvasPercentage.value) / 100
-    mainStore.setCanvasPercentage(percentage)
+    const percentage = Math.round(value / canvasScale * canvasPercentage) / 100
+    setCanvasPercentage(percentage)
   }
 
   /**
    * 重置画布尺寸和位置
    */
   const resetCanvas = () => {
-    mainStore.setCanvasPercentage(90)
-    if (canvasDragged) mainStore.setCanvasDragged(false)
+    setCanvasPercentage(90)
+    if (canvasDragged) setCanvasDragged(false)
   }
 
   return {

@@ -1,11 +1,6 @@
-import { useMainStore } from './main'
-import { useSlidesStore } from './slides'
-import { useSnapshotStore } from './snapshot'
-import { useKeyboardStore } from './keyboard'
+import { useMainStore } from "./main";
+import { useSlidesStore } from "./slides";
+import { useSnapshotStore } from "./snapshot";
+import { useKeyboardStore } from "./keyboard";
 
-export {
-  useMainStore,
-  useSlidesStore,
-  useSnapshotStore,
-  useKeyboardStore,
-}
+export { useMainStore, useSlidesStore, useSnapshotStore, useKeyboardStore };

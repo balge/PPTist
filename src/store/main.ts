@@ -1,5 +1,5 @@
 import { customAlphabet } from "nanoid";
-import { defineStore } from "pinia";
+import { create } from "zustand";
 import type {
   CreatingElement,
   ShapeFormatPainter,
@@ -9,8 +9,6 @@ import {
   type TextAttrs,
   defaultRichTextAttrs,
 } from "@/utils/prosemirror/utils";
-
-import { useSlidesStore } from "./slides";
 
 export interface MainState {
   activeElementIdList: string[];
@@ -24,6 +22,7 @@ export interface MainState {
   editorAreaFocus: boolean;
   disableHotkeys: boolean;
   gridLineSize: number;
+  gridLinesState: boolean; // Added
   showRuler: boolean;
   creatingElement: CreatingElement | null;
   creatingCustomShape: boolean;
@@ -35,6 +34,30 @@ export interface MainState {
   databaseId: string;
   textFormatPainter: TextFormatPainter | null;
   shapeFormatPainter: ShapeFormatPainter | null;
+
+  // Actions
+  setActiveElementIdList: (activeElementIdList: string[]) => void;
+  setHandleElementId: (handleElementId: string) => void;
+  setActiveGroupElementId: (activeGroupElementId: string) => void;
+  setHiddenElementIdList: (hiddenElementIdList: string[]) => void;
+  setCanvasPercentage: (percentage: number) => void;
+  setCanvasScale: (scale: number) => void;
+  setCanvasDragged: (isDragged: boolean) => void;
+  setThumbnailsFocus: (isFocus: boolean) => void;
+  setEditorareaFocus: (isFocus: boolean) => void;
+  setDisableHotkeysState: (disable: boolean) => void;
+  setGridLineSize: (size: number) => void;
+  setGridLinesState: (state: boolean) => void; // Added
+  setRulerState: (show: boolean) => void;
+  setCreatingElement: (element: CreatingElement | null) => void;
+  setCreatingCustomShapeState: (state: boolean) => void;
+  setClipingImageElementId: (elId: string) => void;
+  setRichtextAttrs: (attrs: TextAttrs) => void;
+  setSelectedTableCells: (cells: string[]) => void;
+  setScalingState: (isScaling: boolean) => void;
+  updateSelectedSlidesIndex: (selectedSlidesIndex: number[]) => void;
+  setTextFormatPainter: (textFormatPainter: TextFormatPainter | null) => void;
+  setShapeFormatPainter: (shapeFormatPainter: ShapeFormatPainter | null) => void;
 }
 
 const nanoid = customAlphabet(
@@ -42,141 +65,76 @@ const nanoid = customAlphabet(
 );
 export const databaseId = nanoid(10);
 
-export const useMainStore = defineStore("main", {
-  state: (): MainState => ({
-    activeElementIdList: [], // 被选中的元素ID集合，包含 handleElementId
-    handleElementId: "", // 正在操作的元素ID
-    activeGroupElementId: "", // 组合元素成员中，被选中可独立操作的元素ID
-    hiddenElementIdList: [], // 被隐藏的元素ID集合
-    canvasPercentage: 90, // 画布可视区域百分比
-    canvasScale: 1, // 画布缩放比例（基于宽度{{slidesStore.viewportSize}}像素）
-    canvasDragged: false, // 画布被拖拽移动
-    thumbnailsFocus: false, // 左侧导航缩略图区域聚焦
-    editorAreaFocus: false, //  编辑区域聚焦
-    disableHotkeys: false, // 禁用快捷键
-    gridLineSize: 0, // 网格线尺寸（0表示不显示网格线）
-    showRuler: false, // 显示标尺
-    creatingElement: null, // 正在插入的元素信息，需要通过绘制插入的元素（文字、形状、线条）
-    creatingCustomShape: false, // 正在绘制任意多边形
-    clipingImageElementId: "", // 当前正在裁剪的图片ID
-    richTextAttrs: defaultRichTextAttrs, // 富文本状态
-    selectedTableCells: [], // 选中的表格单元格
-    isScaling: false, // 正在进行元素缩放
-    selectedSlidesIndex: [], // 当前被选中的页面索引集合
-    databaseId, // 标识当前应用的indexedDB数据库ID
-    textFormatPainter: null, // 文字格式刷
-    shapeFormatPainter: null, // 形状格式刷
-  }),
+export const useMainStore = create<MainState>((set) => ({
+  activeElementIdList: [],
+  handleElementId: "",
+  activeGroupElementId: "",
+  hiddenElementIdList: [],
+  canvasPercentage: 90,
+  canvasScale: 1,
+  canvasDragged: false,
+  thumbnailsFocus: false,
+  editorAreaFocus: false,
+  disableHotkeys: false,
+  gridLineSize: 0,
+  gridLinesState: false,
+  showRuler: false,
+  creatingElement: null,
+  creatingCustomShape: false,
+  clipingImageElementId: "",
+  richTextAttrs: defaultRichTextAttrs,
+  selectedTableCells: [],
+  isScaling: false,
+  selectedSlidesIndex: [],
+  databaseId,
+  textFormatPainter: null,
+  shapeFormatPainter: null,
 
-  getters: {
-    activeElementList(state) {
-      const slidesStore = useSlidesStore();
-      const currentSlide = slidesStore.currentSlide;
-      if (!currentSlide || !currentSlide.elements) return [];
-      return currentSlide.elements.filter((element) =>
-        state.activeElementIdList.includes(element.id)
-      );
-    },
+  setActiveElementIdList: (activeElementIdList: string[]) =>
+    set(() => {
+      const handleElementId = activeElementIdList.length === 1 ? activeElementIdList[0] : "";
+      return { activeElementIdList, handleElementId };
+    }),
 
-    handleElement(state) {
-      const slidesStore = useSlidesStore();
-      const currentSlide = slidesStore.currentSlide;
-      if (!currentSlide || !currentSlide.elements) return null;
-      return (
-        currentSlide.elements.find(
-          (element) => state.handleElementId === element.id
-        ) || null
-      );
-    },
-  },
+  setHandleElementId: (handleElementId: string) => set({ handleElementId }),
 
-  actions: {
-    setActiveElementIdList(activeElementIdList: string[]) {
-      if (activeElementIdList.length === 1)
-        this.handleElementId = activeElementIdList[0];
-      else this.handleElementId = "";
+  setActiveGroupElementId: (activeGroupElementId: string) => set({ activeGroupElementId }),
 
-      this.activeElementIdList = activeElementIdList;
-    },
+  setHiddenElementIdList: (hiddenElementIdList: string[]) => set({ hiddenElementIdList }),
 
-    setHandleElementId(handleElementId: string) {
-      this.handleElementId = handleElementId;
-    },
+  setCanvasPercentage: (percentage: number) => set({ canvasPercentage: percentage }),
 
-    setActiveGroupElementId(activeGroupElementId: string) {
-      this.activeGroupElementId = activeGroupElementId;
-    },
+  setCanvasScale: (scale: number) => set({ canvasScale: scale }),
 
-    setHiddenElementIdList(hiddenElementIdList: string[]) {
-      this.hiddenElementIdList = hiddenElementIdList;
-    },
+  setCanvasDragged: (isDragged: boolean) => set({ canvasDragged: isDragged }),
 
-    setCanvasPercentage(percentage: number) {
-      this.canvasPercentage = percentage;
-    },
+  setThumbnailsFocus: (isFocus: boolean) => set({ thumbnailsFocus: isFocus }),
 
-    setCanvasScale(scale: number) {
-      this.canvasScale = scale;
-    },
+  setEditorareaFocus: (isFocus: boolean) => set({ editorAreaFocus: isFocus }),
 
-    setCanvasDragged(isDragged: boolean) {
-      this.canvasDragged = isDragged;
-    },
+  setDisableHotkeysState: (disable: boolean) => set({ disableHotkeys: disable }),
 
-    setThumbnailsFocus(isFocus: boolean) {
-      this.thumbnailsFocus = isFocus;
-    },
+  setGridLineSize: (size: number) => set({ gridLineSize: size }),
 
-    setEditorareaFocus(isFocus: boolean) {
-      this.editorAreaFocus = isFocus;
-    },
+  setGridLinesState: (state: boolean) => set({ gridLinesState: state }),
 
-    setDisableHotkeysState(disable: boolean) {
-      this.disableHotkeys = disable;
-    },
+  setRulerState: (show: boolean) => set({ showRuler: show }),
 
-    setGridLineSize(size: number) {
-      this.gridLineSize = size;
-    },
+  setCreatingElement: (element: CreatingElement | null) => set({ creatingElement: element }),
 
-    setRulerState(show: boolean) {
-      this.showRuler = show;
-    },
+  setCreatingCustomShapeState: (state: boolean) => set({ creatingCustomShape: state }),
 
-    setCreatingElement(element: CreatingElement | null) {
-      this.creatingElement = element;
-    },
+  setClipingImageElementId: (elId: string) => set({ clipingImageElementId: elId }),
 
-    setCreatingCustomShapeState(state: boolean) {
-      this.creatingCustomShape = state;
-    },
+  setRichtextAttrs: (attrs: TextAttrs) => set({ richTextAttrs: attrs }),
 
-    setClipingImageElementId(elId: string) {
-      this.clipingImageElementId = elId;
-    },
+  setSelectedTableCells: (cells: string[]) => set({ selectedTableCells: cells }),
 
-    setRichtextAttrs(attrs: TextAttrs) {
-      this.richTextAttrs = attrs;
-    },
+  setScalingState: (isScaling: boolean) => set({ isScaling: isScaling }),
 
-    setSelectedTableCells(cells: string[]) {
-      this.selectedTableCells = cells;
-    },
+  updateSelectedSlidesIndex: (selectedSlidesIndex: number[]) => set({ selectedSlidesIndex }),
 
-    setScalingState(isScaling: boolean) {
-      this.isScaling = isScaling;
-    },
+  setTextFormatPainter: (textFormatPainter: TextFormatPainter | null) => set({ textFormatPainter }),
 
-    updateSelectedSlidesIndex(selectedSlidesIndex: number[]) {
-      this.selectedSlidesIndex = selectedSlidesIndex;
-    },
-
-    setTextFormatPainter(textFormatPainter: TextFormatPainter | null) {
-      this.textFormatPainter = textFormatPainter;
-    },
-
-    setShapeFormatPainter(shapeFormatPainter: ShapeFormatPainter | null) {
-      this.shapeFormatPainter = shapeFormatPainter;
-    },
-  },
-});
+  setShapeFormatPainter: (shapeFormatPainter: ShapeFormatPainter | null) => set({ shapeFormatPainter }),
+}));

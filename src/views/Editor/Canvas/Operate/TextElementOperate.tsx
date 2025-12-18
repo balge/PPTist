@@ -1,0 +1,70 @@
+import React, { useMemo } from 'react'
+import { useMainStore } from '@/store'
+import type { PPTTextElement } from '@/types/slides'
+import type { OperateResizeHandlers } from '@/types/edit'
+import useCommonOperate from '../hooks/useCommonOperate'
+
+import RotateHandler from './RotateHandler'
+import ResizeHandler from './ResizeHandler'
+import BorderLine from './BorderLine'
+
+interface TextElementOperateProps {
+  elementInfo: PPTTextElement
+  handlerVisible: boolean
+  rotateElement: (e: React.MouseEvent, element: PPTTextElement) => void
+  scaleElement: (e: React.MouseEvent, element: PPTTextElement, command: OperateResizeHandlers) => void
+}
+
+const TextElementOperate: React.FC<TextElementOperateProps> = ({
+  elementInfo,
+  handlerVisible,
+  rotateElement,
+  scaleElement,
+}) => {
+  const { canvasScale } = useMainStore()
+
+  const scaleWidth = elementInfo.width * canvasScale
+  const scaleHeight = elementInfo.height * canvasScale
+
+  const { textElementResizeHandlers, verticalTextElementResizeHandlers, borderLines } = useCommonOperate(scaleWidth, scaleHeight)
+  const resizeHandlers = useMemo(() => 
+    elementInfo.vertical ? verticalTextElementResizeHandlers : textElementResizeHandlers
+  , [elementInfo.vertical, verticalTextElementResizeHandlers, textElementResizeHandlers])
+
+  return (
+    <div className="text-element-operate">
+      {borderLines.map(line => (
+        <BorderLine 
+          key={line.type} 
+          type={line.type} 
+          style={line.style}
+        />
+      ))}
+      {handlerVisible && (
+        <>
+          {resizeHandlers.map(point => (
+            <ResizeHandler
+              key={point.direction}
+              type={point.direction}
+              rotate={elementInfo.rotate}
+              style={point.style}
+              onMouseDown={(e) => {
+                e.stopPropagation()
+                scaleElement(e, elementInfo, point.direction)
+              }}
+            />
+          ))}
+          <RotateHandler
+            style={{ left: scaleWidth / 2 + 'px' }}
+            onMouseDown={(e) => {
+              e.stopPropagation()
+              rotateElement(e, elementInfo)
+            }}
+          />
+        </>
+      )}
+    </div>
+  )
+}
+
+export default TextElementOperate

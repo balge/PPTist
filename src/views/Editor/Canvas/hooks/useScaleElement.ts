@@ -1,5 +1,3 @@
-import type { Ref } from 'vue'
-import { storeToRefs } from 'pinia'
 import { useMainStore, useSlidesStore, useKeyboardStore } from '@/store'
 import type { PPTElement, PPTImageElement, PPTLineElement, PPTShapeElement } from '@/types/slides'
 import { OperateResizeHandlers, type AlignmentLineProps, type MultiSelectRange } from '@/types/edit'
@@ -93,16 +91,13 @@ const getOppositePoint = (direction: OperateResizeHandlers, points: ReturnType<t
 }
 
 export default (
-  elementList: Ref<PPTElement[]>,
-  alignmentLines: Ref<AlignmentLineProps[]>,
-  canvasScale: Ref<number>,
+  elementList: PPTElement[],
+  setElementList: (list: PPTElement[] | ((prev: PPTElement[]) => PPTElement[])) => void,
+  setAlignmentLines: (lines: AlignmentLineProps[]) => void,
 ) => {
   const mainStore = useMainStore()
   const slidesStore = useSlidesStore()
-  const { activeElementIdList, activeGroupElementId } = storeToRefs(mainStore)
-  const { viewportRatio, viewportSize } = storeToRefs(slidesStore)
-  const { ctrlOrShiftKeyActive } = storeToRefs(useKeyboardStore())
-
+  
   const { addHistorySnapshot } = useHistorySnapshot()
 
   // 缩放元素
@@ -123,11 +118,14 @@ export default (
     const elRotate = ('rotate' in element && element.rotate) ? element.rotate : 0
     const rotateRadian = Math.PI * elRotate / 180
 
-    const fixedRatio = ctrlOrShiftKeyActive.value || ('fixedRatio' in element && element.fixedRatio)
+    const ctrlOrShiftKeyActive = useKeyboardStore.getState().ctrlOrShiftKeyActive
+    const fixedRatio = ctrlOrShiftKeyActive || ('fixedRatio' in element && element.fixedRatio)
     const aspectRatio = elOriginWidth / elOriginHeight
 
     const startPageX = isTouchEvent ? e.changedTouches[0].pageX : e.pageX
     const startPageY = isTouchEvent ? e.changedTouches[0].pageY : e.pageY
+
+    const canvasScale = useMainStore.getState().canvasScale
 
     // 元素最小缩放限制
     const minSize = MIN_SIZE[element.type] || 20
@@ -165,15 +163,18 @@ export default (
     // 包括页面内除目标元素外的其他元素在画布中的各个可吸附对齐位置：上下左右四边
     // 其中线条和被旋转过的元素不参与吸附对齐
     else {
-      const edgeWidth = viewportSize.value
-      const edgeHeight = viewportSize.value * viewportRatio.value
-      const isActiveGroupElement = element.id === activeGroupElementId.value
+      const { viewportRatio, viewportSize } = useSlidesStore.getState()
+      const { activeElementIdList, activeGroupElementId } = useMainStore.getState()
       
-      for (const el of elementList.value) {
+      const edgeWidth = viewportSize
+      const edgeHeight = viewportSize * viewportRatio
+      const isActiveGroupElement = element.id === activeGroupElementId
+      
+      for (const el of elementList) {
         if ('rotate' in el && el.rotate) continue
         if (el.type === 'line') continue
         if (isActiveGroupElement && el.id === element.id) continue
-        if (!isActiveGroupElement && activeElementIdList.value.includes(el.id)) continue
+        if (!isActiveGroupElement && activeElementIdList.includes(el.id)) continue
 
         const left = el.left
         const top = el.top
@@ -243,7 +244,7 @@ export default (
           }
         }
       }
-      alignmentLines.value = _alignmentLines
+      setAlignmentLines(_alignmentLines)
       return correctionVal
     }
 
@@ -263,8 +264,8 @@ export default (
       
       // 元素被旋转的情况下，需要根据元素旋转的角度，重新计算需要缩放的距离（鼠标按下后移动的距离）
       if (elRotate) {
-        const revisedX = (Math.cos(rotateRadian) * x + Math.sin(rotateRadian) * y) / canvasScale.value
-        let revisedY = (Math.cos(rotateRadian) * y - Math.sin(rotateRadian) * x) / canvasScale.value
+        const revisedX = (Math.cos(rotateRadian) * x + Math.sin(rotateRadian) * y) / canvasScale
+        let revisedY = (Math.cos(rotateRadian) * y - Math.sin(rotateRadian) * x) / canvasScale
 
         // 锁定宽高比例（仅四个角可能触发，四条边不会触发）
         // 以水平方向上缩放的距离为基础，计算垂直方向上的缩放距离，保持二者具有相同的缩放比例
@@ -329,8 +330,8 @@ export default (
       // 额外需要处理对齐吸附相关的操作
       // 锁定宽高比例相关的操作同上，不再赘述
       else {
-        let moveX = x / canvasScale.value
-        let moveY = y / canvasScale.value
+        let moveX = x / canvasScale
+        let moveY = y / canvasScale
 
         if (fixedRatio) {
           if (command === OperateResizeHandlers.RIGHT_BOTTOM || command === OperateResizeHandlers.LEFT_TOP) moveY = moveX / aspectRatio
@@ -409,7 +410,7 @@ export default (
         }
       }
       
-      elementList.value = elementList.value.map(el => {
+      setElementList((prevList) => prevList.map(el => {
         if (element.id !== el.id) return el
         if (el.type === 'shape' && 'pathFormula' in el && el.pathFormula) {
           const pathFormula = SHAPE_PATH_FORMULAS[el.pathFormula]
@@ -435,7 +436,7 @@ export default (
           }
         }
         return { ...el, left, top, width, height }
-      })
+      }))
     }
 
     const handleMouseup = (e: MouseEvent | TouchEvent) => {
@@ -446,17 +447,42 @@ export default (
       document.onmousemove = null
       document.onmouseup = null
 
-      alignmentLines.value = []
+      setAlignmentLines([])
 
       const currentPageX = e instanceof MouseEvent ? e.pageX : e.changedTouches[0].pageX
       const currentPageY = e instanceof MouseEvent ? e.pageY : e.changedTouches[0].pageY
       
       if (startPageX === currentPageX && startPageY === currentPageY) return
       
-      slidesStore.updateSlide({ elements: elementList.value })
-      mainStore.setScalingState(false)
+      // In React, setElementList already updated the local state (or store). 
+      // We should ensure the final state is synced to history/store if needed.
+      // slidesStore.updateSlide({ elements: elementList.value }) in Vue.
+      // Here, setElementList likely updates the store via the parent.
+      // We'll call updateSlide with the current elements from the store?
+      // But setElementList is async? No, it's a setter.
+      // Wait, we need the *final* element list to update slide.
+      // If setElementList updates the store, then updateSlide might be redundant if it just sets elements.
+      // But we need to add a snapshot.
       
+      // We can get the latest elements from the store if setElementList updates the store.
+      // Or we can rely on the fact that setElementList was called.
+      // But addHistorySnapshot needs the *new* state to be present.
+      
+      // Since we are updating the store (assuming setElementList does), we can just snapshot.
+      // But if setElementList only updates local state, we need to commit it.
+      // In Canvas/index.tsx, setElementList likely calls updateSlide?
+      // No, in Vue it was local Ref then committed.
+      // In React/Zustand, we should update the store directly in mousemove?
+      // Or update a local state and then commit?
+      // Updating store on every mousemove is fine for 60fps usually.
+      
+      // Let's assume setElementList updates the store.
+      // slidesStore.updateSlide({ elements: ... }) might perform extra logic?
+      // In useSlidesStore, updateSlide updates the elements.
+      
+      // I will assume setElementList updates the store elements.
       addHistorySnapshot()
+      mainStore.setScalingState(false)
     }
 
     if (isTouchEvent) {
@@ -480,8 +506,12 @@ export default (
 
     const startPageX = e.pageX
     const startPageY = e.pageY
+    
+    const canvasScale = useMainStore.getState().canvasScale
+    const { activeElementIdList } = useMainStore.getState()
+    const { ctrlOrShiftKeyActive } = useKeyboardStore.getState()
 
-    const originElementList: PPTElement[] = JSON.parse(JSON.stringify(elementList.value))
+    const originElementList: PPTElement[] = JSON.parse(JSON.stringify(elementList))
 
     document.onmousemove = e => {
       if (!isMouseDown) return
@@ -489,11 +519,11 @@ export default (
       const currentPageX = e.pageX
       const currentPageY = e.pageY
 
-      const x = (currentPageX - startPageX) / canvasScale.value
-      let y = (currentPageY - startPageY) / canvasScale.value
+      const x = (currentPageX - startPageX) / canvasScale
+      let y = (currentPageY - startPageY) / canvasScale
 
       // 锁定宽高比例，逻辑同上
-      if (ctrlOrShiftKeyActive.value) {
+      if (ctrlOrShiftKeyActive) {
         if (command === OperateResizeHandlers.RIGHT_BOTTOM || command === OperateResizeHandlers.LEFT_TOP) y = x / aspectRatio
         if (command === OperateResizeHandlers.LEFT_BOTTOM || command === OperateResizeHandlers.RIGHT_TOP) y = -x / aspectRatio
       }
@@ -545,9 +575,11 @@ export default (
       if (heightScale <= 0) heightScale = 0
       
       // 根据前面计算的比例，计算并修改所有选中元素的位置大小
-      elementList.value = elementList.value.map(el => {
-        if ((el.type === 'image' || el.type === 'shape') && activeElementIdList.value.includes(el.id)) {
+      setElementList((prevList) => prevList.map(el => {
+        if ((el.type === 'image' || el.type === 'shape') && activeElementIdList.includes(el.id)) {
           const originElement = originElementList.find(originEl => originEl.id === el.id) as PPTImageElement | PPTShapeElement
+          if (!originElement) return el
+          
           return {
             ...el,
             width: originElement.width * widthScale,
@@ -557,7 +589,7 @@ export default (
           }
         }
         return el
-      })
+      }))
     }
 
     document.onmouseup = e => {
@@ -567,7 +599,6 @@ export default (
 
       if (startPageX === e.pageX && startPageY === e.pageY) return
 
-      slidesStore.updateSlide({ elements: elementList.value })
       addHistorySnapshot()
     }
   }

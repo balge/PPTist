@@ -1,4 +1,3 @@
-import { storeToRefs } from 'pinia'
 import { nanoid } from 'nanoid'
 import { useSlidesStore, useMainStore } from '@/store'
 import type { PPTElement, Slide } from '@/types/slides'
@@ -6,9 +5,8 @@ import { createSlideIdMap, createElementIdMap, getElementRange } from '@/utils/e
 import useHistorySnapshot from '@/hooks/useHistorySnapshot'
 
 export default () => {
-  const mainStore = useMainStore()
-  const slidesStore = useSlidesStore()
-  const { currentSlide } = storeToRefs(slidesStore)
+  const { setActiveElementIdList } = useMainStore()
+  const { currentSlide, addElement, addSlide } = useSlidesStore()
 
   const { addHistorySnapshot } = useHistorySnapshot()
 
@@ -17,6 +15,8 @@ export default () => {
    * @param elements 元素列表数据
    */
   const addElementsFromData = (elements: PPTElement[]) => {
+    if (!currentSlide) return
+
     const { groupIdMap, elIdMap } = createElementIdMap(elements)
 
     const firstElement = elements[0]
@@ -24,7 +24,7 @@ export default () => {
     let lastSameElement: PPTElement | undefined
     
     do {
-      lastSameElement = currentSlide.value.elements.find(el => {
+      lastSameElement = currentSlide.elements.find(el => {
         if (el.type !== firstElement.type) return false
   
         const { minX: oMinX, maxX: oMaxX, minY: oMinY, maxY: oMaxY } = getElementRange(el)
@@ -54,8 +54,8 @@ export default () => {
 
       if (element.groupId) element.groupId = groupIdMap[element.groupId]
     }
-    slidesStore.addElement(elements)
-    mainStore.setActiveElementIdList(Object.values(elIdMap))
+    addElement(elements)
+    setActiveElementIdList(Object.values(elIdMap))
     addHistorySnapshot()
   }
 
@@ -95,7 +95,7 @@ export default () => {
         id: slideIdMap[slide.id],
       }
     })
-    slidesStore.addSlide(newSlides)
+    addSlide(newSlides)
     addHistorySnapshot()
   }
 

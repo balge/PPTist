@@ -1,4 +1,4 @@
-import { storeToRefs } from 'pinia'
+import { useMemo } from 'react'
 import { useMainStore, useSlidesStore } from '@/store'
 import type { PPTElement } from '@/types/slides'
 import { ElementAlignCommands } from '@/types/edit'
@@ -6,9 +6,13 @@ import { getElementListRange } from '@/utils/element'
 import useHistorySnapshot from './useHistorySnapshot'
 
 export default () => {
-  const slidesStore = useSlidesStore()
-  const { activeElementIdList, activeElementList } = storeToRefs(useMainStore())
-  const { currentSlide, viewportRatio, viewportSize } = storeToRefs(slidesStore)
+  const { activeElementIdList } = useMainStore()
+  const { currentSlide, viewportRatio, viewportSize, updateSlide } = useSlidesStore()
+
+  const activeElementList = useMemo(() => {
+    if (!currentSlide || !currentSlide.elements) return []
+    return currentSlide.elements.filter(el => activeElementIdList.includes(el.id))
+  }, [currentSlide, activeElementIdList])
 
   const { addHistorySnapshot } = useHistorySnapshot()
 
@@ -17,13 +21,15 @@ export default () => {
    * @param command 对齐方向
    */
   const alignElementToCanvas = (command: ElementAlignCommands) => {
-    const viewportWidth = viewportSize.value
-    const viewportHeight = viewportSize.value * viewportRatio.value
-    const { minX, maxX, minY, maxY } = getElementListRange(activeElementList.value)
+    if (!currentSlide) return
+
+    const viewportWidth = viewportSize
+    const viewportHeight = viewportSize * viewportRatio
+    const { minX, maxX, minY, maxY } = getElementListRange(activeElementList)
   
-    const newElementList: PPTElement[] = JSON.parse(JSON.stringify(currentSlide.value.elements))
+    const newElementList: PPTElement[] = JSON.parse(JSON.stringify(currentSlide.elements))
     for (const element of newElementList) {
-      if (!activeElementIdList.value.includes(element.id)) continue
+      if (!activeElementIdList.includes(element.id)) continue
       
       // 水平垂直居中
       if (command === ElementAlignCommands.CENTER) {
@@ -70,7 +76,7 @@ export default () => {
       }
     }
 
-    slidesStore.updateSlide({ elements: newElementList })
+    updateSlide({ elements: newElementList })
     addHistorySnapshot()
   }
 

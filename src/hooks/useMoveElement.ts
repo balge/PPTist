@@ -1,13 +1,11 @@
-import { storeToRefs } from 'pinia'
 import { useMainStore, useSlidesStore } from '@/store'
 import type { PPTElement } from '@/types/slides'
 import { KEYS } from '@/configs/hotkey'
 import useHistorySnapshot from '@/hooks/useHistorySnapshot'
 
 export default () => {
-  const slidesStore = useSlidesStore()
-  const { activeElementIdList, activeGroupElementId } = storeToRefs(useMainStore())
-  const { currentSlide } = storeToRefs(slidesStore)
+  const { currentSlide, updateSlide } = useSlidesStore()
+  const { activeElementIdList, activeGroupElementId } = useMainStore()
 
   const { addHistorySnapshot } = useHistorySnapshot()
 
@@ -18,6 +16,8 @@ export default () => {
    * @param step 移动距离
    */
   const moveElement = (command: string, step = 1) => {
+    if (!currentSlide) return
+    
     let newElementList: PPTElement[] = []
 
     const move = (el: PPTElement) => {
@@ -40,18 +40,18 @@ export default () => {
       return { ...el, left, top }
     }
 
-    if (activeGroupElementId.value) {
-      newElementList = currentSlide.value.elements.map(el => {
-        return activeGroupElementId.value === el.id ? move(el) : el
+    if (activeGroupElementId) {
+      newElementList = currentSlide.elements.map(el => {
+        return activeGroupElementId === el.id ? move(el) : el
       })
     }
     else {
-      newElementList = currentSlide.value.elements.map(el => {
-        return activeElementIdList.value.includes(el.id) ? move(el) : el
+      newElementList = currentSlide.elements.map(el => {
+        return activeElementIdList.includes(el.id) ? move(el) : el
       })
     }
 
-    slidesStore.updateSlide({ elements: newElementList })
+    updateSlide({ elements: newElementList })
     addHistorySnapshot()
   }
 

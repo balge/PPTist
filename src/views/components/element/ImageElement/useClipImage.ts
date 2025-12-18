@@ -1,28 +1,28 @@
-import { computed, type Ref } from 'vue'
+import { useMemo } from 'react'
 import { CLIPPATHS, ClipPathTypes } from '@/configs/imageClip'
 import type { PPTImageElement } from '@/types/slides'
 
-export default (element: Ref<PPTImageElement>) => {
-  const clipShape = computed(() => {
+export default (element: PPTImageElement) => {
+  const clipShape = useMemo(() => {
     let _clipShape = CLIPPATHS.rect
     
-    if (element.value.clip) {
-      const shape = element.value.clip.shape || ClipPathTypes.RECT
+    if (element.clip) {
+      const shape = element.clip.shape || ClipPathTypes.RECT
       _clipShape = CLIPPATHS[shape]
     }
-    if (_clipShape.radius !== undefined && element.value.radius) {
+    if (_clipShape.radius !== undefined && element.radius) {
       _clipShape = {
         ..._clipShape,
-        radius: `${element.value.radius}px`,
-        style: `inset(0 round ${element.value.radius}px)`,
+        radius: `${element.radius}px`,
+        style: `inset(0 round ${element.radius}px)`,
       }
     }
 
     return _clipShape
-  })
+  }, [element.clip, element.radius])
 
-  const imgPosition = computed(() => {
-    if (!element.value.clip) {
+  const imgPosition = useMemo(() => {
+    if (!element.clip) {
       return {
         top: '0',
         left: '0',
@@ -31,7 +31,7 @@ export default (element: Ref<PPTImageElement>) => {
       }
     }
 
-    const [start, end] = element.value.clip.range
+    const [start, end] = element.clip.range
 
     const widthScale = (end[0] - start[0]) / 100
     const heightScale = (end[1] - start[1]) / 100
@@ -44,7 +44,7 @@ export default (element: Ref<PPTImageElement>) => {
       width: 100 / widthScale + '%',
       height: 100 / heightScale + '%',
     }
-  })
+  }, [element.clip])
 
   return {
     clipShape,

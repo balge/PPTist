@@ -1,4 +1,3 @@
-import { storeToRefs } from 'pinia'
 import { useKeyboardStore } from '@/store'
 import { pasteCustomClipboardString } from '@/utils/clipboard'
 import { parseText2Paragraphs } from '@/utils/textParser'
@@ -25,7 +24,7 @@ const isValidImgURL = (url: string) => {
 }
 
 export default () => {
-  const { shiftKeyState } = storeToRefs(useKeyboardStore())
+  const { shiftKeyState } = useKeyboardStore()
 
   const { createTextElement, createImageElement } = useCreateElement()
   const { addElementsFromData, addSlidesFromData } = useAddSlidesOrElements()
@@ -65,7 +64,7 @@ export default () => {
     // 普通文本
     else if (!onlyElements && !onlySlide) {
       // 普通文字
-      if (shiftKeyState.value) {
+      if (shiftKeyState) {
         const string = parseText2Paragraphs(clipboardData)
         createTextElementFromClipboard(string)
       }

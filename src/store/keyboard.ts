@@ -1,33 +1,38 @@
-import { defineStore } from 'pinia'
+import { create } from "zustand";
 
 export interface KeyboardState {
-  ctrlKeyState: boolean
-  shiftKeyState: boolean
-  spaceKeyState: boolean
+  ctrlKeyState: boolean;
+  shiftKeyState: boolean;
+  spaceKeyState: boolean;
+
+  // Computed
+  ctrlOrShiftKeyActive: boolean;
+
+  // Actions
+  setCtrlKeyState: (active: boolean) => void;
+  setShiftKeyState: (active: boolean) => void;
+  setSpaceKeyState: (active: boolean) => void;
 }
 
-export const useKeyboardStore = defineStore('keyboard', {
-  state: (): KeyboardState => ({
-    ctrlKeyState: false, // ctrl键按下状态
-    shiftKeyState: false, // shift键按下状态
-    spaceKeyState: false, // space键按下状态
-  }),
+export const useKeyboardStore = create<KeyboardState>((set) => ({
+  ctrlKeyState: false,
+  shiftKeyState: false,
+  spaceKeyState: false,
+  ctrlOrShiftKeyActive: false,
 
-  getters: {
-    ctrlOrShiftKeyActive(state) {
-      return state.ctrlKeyState || state.shiftKeyState
-    },
-  },
+  setCtrlKeyState: (active: boolean) =>
+    set((state) => ({
+      ctrlKeyState: active,
+      ctrlOrShiftKeyActive: active || state.shiftKeyState,
+    })),
+  setShiftKeyState: (active: boolean) =>
+    set((state) => ({
+      shiftKeyState: active,
+      ctrlOrShiftKeyActive: state.ctrlKeyState || active,
+    })),
+  setSpaceKeyState: (active: boolean) => set({ spaceKeyState: active }),
+}));
 
-  actions: {
-    setCtrlKeyState(active: boolean) {
-      this.ctrlKeyState = active
-    },
-    setShiftKeyState(active: boolean) {
-      this.shiftKeyState = active
-    },
-    setSpaceKeyState(active: boolean) {
-      this.spaceKeyState = active
-    },
-  },
-})
+// Helper hook for getter (optional, if components prefer this)
+export const useCtrlOrShiftKeyActive = () =>
+  useKeyboardStore((state) => state.ctrlOrShiftKeyActive);

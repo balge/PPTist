@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'vue'
+import type { CSSProperties } from 'react'
 import type { TableCellStyle } from '@/types/slides'
 
 /**
@@ -20,7 +20,7 @@ export const getTextStyle = (style?: TableCellStyle): CSSProperties => {
   } = style
 
   let textDecoration = `${underline ? 'underline' : ''} ${strikethrough ? 'line-through' : ''}`
-  if (textDecoration === ' ') textDecoration = 'none'
+  if (textDecoration.trim() === '') textDecoration = 'none'
   
   return {
     fontWeight: bold ? 'bold' : 'normal',

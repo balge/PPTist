@@ -1,5 +1,3 @@
-import type { Ref } from 'vue'
-import { storeToRefs } from 'pinia'
 import { useMainStore, useSlidesStore, useKeyboardStore } from '@/store'
 import type { PPTElement } from '@/types/slides'
 import type { AlignmentLineProps } from '@/types/edit'
@@ -7,31 +5,30 @@ import { getRectRotatedRange, uniqAlignLines, type AlignLine } from '@/utils/ele
 import useHistorySnapshot from '@/hooks/useHistorySnapshot'
 
 export default (
-  elementList: Ref<PPTElement[]>,
-  alignmentLines: Ref<AlignmentLineProps[]>,
-  canvasScale: Ref<number>,
+  elementList: PPTElement[],
+  setElementList: (list: PPTElement[] | ((prev: PPTElement[]) => PPTElement[])) => void,
+  setAlignmentLines: (lines: AlignmentLineProps[]) => void,
 ) => {
   const slidesStore = useSlidesStore()
-  const { activeElementIdList, activeGroupElementId } = storeToRefs(useMainStore())
-  const { shiftKeyState } = storeToRefs(useKeyboardStore())
-  const { viewportRatio, viewportSize } = storeToRefs(slidesStore)
-
   const { addHistorySnapshot } = useHistorySnapshot()
 
   const dragElement = (e: MouseEvent | TouchEvent, element: PPTElement) => {
     const isTouchEvent = !(e instanceof MouseEvent)
     if (isTouchEvent && (!e.changedTouches || !e.changedTouches[0])) return
 
-    if (!activeElementIdList.value.includes(element.id)) return
+    const { activeElementIdList, activeGroupElementId } = useMainStore.getState()
+    if (!activeElementIdList.includes(element.id)) return
+    
     let isMouseDown = true
 
-    const edgeWidth = viewportSize.value
-    const edgeHeight = viewportSize.value * viewportRatio.value
+    const { viewportRatio, viewportSize } = useSlidesStore.getState()
+    const edgeWidth = viewportSize
+    const edgeHeight = viewportSize * viewportRatio
     
     const sorptionRange = 5
 
-    const originElementList: PPTElement[] = JSON.parse(JSON.stringify(elementList.value))
-    const originActiveElementList = originElementList.filter(el => activeElementIdList.value.includes(el.id))
+    const originElementList: PPTElement[] = JSON.parse(JSON.stringify(elementList))
+    const originActiveElementList = originElementList.filter(el => activeElementIdList.includes(el.id))
   
     const elOriginLeft = element.left
     const elOriginTop = element.top
@@ -41,10 +38,13 @@ export default (
   
     const startPageX = isTouchEvent ? e.changedTouches[0].pageX : e.pageX
     const startPageY = isTouchEvent ? e.changedTouches[0].pageY : e.pageY
+    
+    const canvasScale = useMainStore.getState().canvasScale
+    const shiftKeyState = useKeyboardStore.getState().shiftKeyState
 
     let isMisoperation: boolean | null = null
 
-    const isActiveGroupElement = element.id === activeGroupElementId.value
+    const isActiveGroupElement = element.id === activeGroupElementId
 
     // 收集对齐对齐吸附线
     // 包括页面内除目标元素外的其他元素在画布中的各个可吸附对齐位置：上下左右四边，水平中心、垂直中心
@@ -52,10 +52,10 @@ export default (
     let horizontalLines: AlignLine[] = []
     let verticalLines: AlignLine[] = []
 
-    for (const el of elementList.value) {
+    for (const el of elementList) {
       if (el.type === 'line') continue
       if (isActiveGroupElement && el.id === element.id) continue
-      if (!isActiveGroupElement && activeElementIdList.value.includes(el.id)) continue
+      if (!isActiveGroupElement && activeElementIdList.includes(el.id)) continue
 
       let left, top, width, height
       if ('rotate' in el && el.rotate) {
@@ -123,10 +123,10 @@ export default (
       }
       if (!isMouseDown || isMisoperation) return
       
-      let moveX = (currentPageX - startPageX) / canvasScale.value
-      let moveY = (currentPageY - startPageY) / canvasScale.value
+      let moveX = (currentPageX - startPageX) / canvasScale
+      let moveY = (currentPageY - startPageY) / canvasScale
 
-      if (shiftKeyState.value) {
+      if (shiftKeyState) {
         if (Math.abs(moveX) > Math.abs(moveY)) moveY = 0
         if (Math.abs(moveX) < Math.abs(moveY)) moveX = 0
       }
@@ -139,7 +139,7 @@ export default (
       // 需要区分单选和多选两种情况，其中多选状态下需要计算多选元素的整体范围；单选状态下需要继续区分线条、普通元素、旋转后的普通元素三种情况
       let targetMinX: number, targetMaxX: number, targetMinY: number, targetMaxY: number
 
-      if (activeElementIdList.value.length === 1 || isActiveGroupElement) {
+      if (activeElementIdList.length === 1 || isActiveGroupElement) {
         if (elOriginRotate) {
           const { xRange, yRange } = getRectRotatedRange({
             left: targetLeft,
@@ -257,23 +257,23 @@ export default (
           _alignmentLines.push({type: 'vertical', axis: {x: value, y: min - 50}, length: max - min + 100})
         }
       }
-      alignmentLines.value = _alignmentLines
+      setAlignmentLines(_alignmentLines)
       
       // 单选状态下，或者当前选中的多个元素中存在正在操作的元素时，仅修改正在操作的元素的位置
-      if (activeElementIdList.value.length === 1 || isActiveGroupElement) {
-        elementList.value = elementList.value.map(el => {
+      if (activeElementIdList.length === 1 || isActiveGroupElement) {
+        setElementList((prevList) => prevList.map(el => {
           return el.id === element.id ? { ...el, left: targetLeft, top: targetTop } : el
-        })
+        }))
       }
 
       // 多选状态下，除了修改正在操作的元素的位置，其他被选中的元素也需要修改位置信息
       // 其他被选中的元素的位置信息通过正在操作的元素的移动偏移量来进行计算
       else {
-        const handleElement = elementList.value.find(el => el.id === element.id)
+        const handleElement = elementList.find(el => el.id === element.id)
         if (!handleElement) return
 
-        elementList.value = elementList.value.map(el => {
-          if (activeElementIdList.value.includes(el.id)) {
+        setElementList((prevList) => prevList.map(el => {
+          if (activeElementIdList.includes(el.id)) {
             if (el.id === element.id) {
               return {
                 ...el,
@@ -288,7 +288,7 @@ export default (
             }
           }
           return el
-        })
+        }))
       }
     }
 
@@ -300,14 +300,13 @@ export default (
       document.onmousemove = null
       document.onmouseup = null
 
-      alignmentLines.value = []
+      setAlignmentLines([])
 
       const currentPageX = e instanceof MouseEvent ? e.pageX : e.changedTouches[0].pageX
       const currentPageY = e instanceof MouseEvent ? e.pageY : e.changedTouches[0].pageY
 
       if (startPageX === currentPageX && startPageY === currentPageY) return
 
-      slidesStore.updateSlide({ elements: elementList.value })
       addHistorySnapshot()
     }
 

@@ -1,138 +1,119 @@
-import { defineStore } from 'pinia'
+import { create } from 'zustand'
 import type { Slide } from '@/types/slides'
-
 import { useSlidesStore } from './slides'
 import { useMainStore } from './main'
 
-export interface ScreenState {
-  snapshotCursor: number;
-  snapshotLength: number;
-  snapshots: Snapshot[];
-}
-
-/** 内存快照结构 */
 interface Snapshot {
-  index: number;
-  slides: Slide[];
+  index: number
+  slides: Slide[]
 }
 
-export const useSnapshotStore = defineStore('snapshot', {
-  state: (): ScreenState => ({
-    snapshotCursor: -1, // 历史快照指针
-    snapshotLength: 0, // 历史快照长度
-    snapshots: [], // 历史快照列表（内存）
-  }),
+export interface SnapshotState {
+  snapshotCursor: number
+  snapshotLength: number
+  snapshots: Snapshot[]
 
-  getters: {
-    /** 判断是否可撤销 */
-    canUndo(state) {
-      return state.snapshotCursor > 0
-    },
-    /** 判断是否可重做 */
-    canRedo(state) {
-      return state.snapshotCursor < state.snapshotLength - 1
-    },
+  // Getters (computed properties in React can be derived from state)
+  // Actions
+  setSnapshotCursor: (cursor: number) => void
+  setSnapshotLength: (length: number) => void
+  addSnapshot: () => void
+  unDo: () => void
+  reDo: () => void
+}
+
+export const useSnapshotStore = create<SnapshotState>((set, get) => ({
+  snapshotCursor: -1,
+  snapshotLength: 0,
+  snapshots: [],
+
+  setSnapshotCursor: (cursor: number) => set({ snapshotCursor: cursor }),
+
+  setSnapshotLength: (length: number) => set({ snapshotLength: length }),
+
+  addSnapshot: () => {
+    const { slides, slideIndex } = useSlidesStore.getState()
+    const { snapshotCursor, snapshots } = get()
+    
+    let newSnapshots = [...snapshots]
+
+    // 若当前指针不在末尾，截断后续快照
+    if (snapshotCursor >= 0 && snapshotCursor < snapshots.length - 1) {
+      newSnapshots = newSnapshots.slice(0, snapshotCursor + 1)
+    }
+
+    // 添加新快照
+    const snapshot: Snapshot = {
+      index: slideIndex,
+      slides: JSON.parse(JSON.stringify(slides)),
+    }
+
+    // 快照数大于1时，保证撤回后维持页面焦点不变：更新倒数第二个快照 index
+    if (newSnapshots.length >= 1) {
+      const prevIndex = newSnapshots.length - 1
+      newSnapshots[prevIndex] = {
+        ...newSnapshots[prevIndex],
+        index: slideIndex
+      }
+    }
+
+    newSnapshots.push(snapshot)
+
+    // 快照数量限制
+    const snapshotLengthLimit = 20
+    if (newSnapshots.length > snapshotLengthLimit) {
+      newSnapshots.shift()
+    }
+
+    const newLength = newSnapshots.length
+    const newCursor = newLength - 1
+
+    set({
+      snapshots: newSnapshots,
+      snapshotCursor: newCursor,
+      snapshotLength: newLength
+    })
   },
 
-  actions: {
-    /**
-     * 设置快照指针位置
-     * @param cursor 新的指针位置
-     */
-    setSnapshotCursor(cursor: number) {
-      this.snapshotCursor = cursor
-    },
-    /**
-     * 设置快照总长度
-     * @param length 快照总长度
-     */
-    setSnapshotLength(length: number) {
-      this.snapshotLength = length
-    },
+  unDo: () => {
+    const { snapshotCursor, snapshots } = get()
+    if (snapshotCursor <= 0) return
 
-    /**
-     * 添加当前状态的快照（内存管理），并维护快照指针与长度
-     * - 若当前指针不在末尾，截断指针之后的快照
-     * - 限制快照数量为 20，超过则移除头部
-     * - 保持撤回后页面焦点不变：更新倒数第二个快照的 index
-     */
-    addSnapshot() {
-      const slidesStore = useSlidesStore()
+    const newCursor = snapshotCursor - 1
+    const snapshot = snapshots[newCursor]
+    const { index, slides } = snapshot
 
-      // 若当前指针不在末尾，截断后续快照
-      if (
-        this.snapshotCursor >= 0 &&
-        this.snapshotCursor < this.snapshots.length - 1
-      ) {
-        this.snapshots = this.snapshots.slice(0, this.snapshotCursor + 1)
-      }
+    const { setSlides, updateSlideIndex } = useSlidesStore.getState()
+    const { setActiveElementIdList } = useMainStore.getState()
 
-      // 添加新快照
-      const snapshot: Snapshot = {
-        index: slidesStore.slideIndex,
-        slides: JSON.parse(JSON.stringify(slidesStore.slides)),
-      }
+    const slideIndex = index > slides.length - 1 ? slides.length - 1 : index
 
-      // 快照数大于1时，保证撤回后维持页面焦点不变：更新倒数第二个快照 index
-      if (this.snapshots.length >= 1) {
-        const prevIndex = this.snapshots.length - 1
-        this.snapshots[prevIndex].index = slidesStore.slideIndex
-      }
-
-      this.snapshots.push(snapshot)
-
-      // 快照数量限制
-      const snapshotLengthLimit = 20
-      if (this.snapshots.length > snapshotLengthLimit) {
-        // 头部移除一个
-        this.snapshots.shift()
-        // 指针位置移至尾部（固定为最新）
-      }
-
-      this.setSnapshotCursor(this.snapshots.length - 1)
-      this.setSnapshotLength(this.snapshots.length)
-    },
-
-    /**
-     * 撤销到上一个快照并恢复状态（内存）
-     */
-    unDo() {
-      if (this.snapshotCursor <= 0) return
-
-      const slidesStore = useSlidesStore()
-      const mainStore = useMainStore()
-
-      const snapshotCursor = this.snapshotCursor - 1
-      const snapshot = this.snapshots[snapshotCursor]
-      const { index, slides } = snapshot
-
-      const slideIndex = index > slides.length - 1 ? slides.length - 1 : index
-
-      slidesStore.setSlides(slides)
-      slidesStore.updateSlideIndex(slideIndex)
-      this.setSnapshotCursor(snapshotCursor)
-      mainStore.setActiveElementIdList([])
-    },
-
-    /**
-     * 重做到下一个快照并恢复状态（内存）
-     */
-    reDo() {
-      if (this.snapshotCursor >= this.snapshotLength - 1) return
-
-      const slidesStore = useSlidesStore()
-      const mainStore = useMainStore()
-
-      const snapshotCursor = this.snapshotCursor + 1
-      const snapshot = this.snapshots[snapshotCursor]
-      const { index, slides } = snapshot
-
-      const slideIndex = index > slides.length - 1 ? slides.length - 1 : index
-
-      slidesStore.setSlides(slides)
-      slidesStore.updateSlideIndex(slideIndex)
-      this.setSnapshotCursor(snapshotCursor)
-      mainStore.setActiveElementIdList([])
-    },
+    setSlides(slides)
+    updateSlideIndex(slideIndex)
+    set({ snapshotCursor: newCursor })
+    setActiveElementIdList([])
   },
-})
+
+  reDo: () => {
+    const { snapshotCursor, snapshotLength, snapshots } = get()
+    if (snapshotCursor >= snapshotLength - 1) return
+
+    const newCursor = snapshotCursor + 1
+    const snapshot = snapshots[newCursor]
+    const { index, slides } = snapshot
+
+    const { setSlides, updateSlideIndex } = useSlidesStore.getState()
+    const { setActiveElementIdList } = useMainStore.getState()
+
+    const slideIndex = index > slides.length - 1 ? slides.length - 1 : index
+
+    setSlides(slides)
+    updateSlideIndex(slideIndex)
+    set({ snapshotCursor: newCursor })
+    setActiveElementIdList([])
+  },
+}))
+
+// Helper hooks for getters
+export const useCanUndo = () => useSnapshotStore(state => state.snapshotCursor > 0)
+export const useCanRedo = () => useSnapshotStore(state => state.snapshotCursor < state.snapshotLength - 1)

@@ -1,6 +1,6 @@
-import { defineStore } from 'pinia'
+import { create } from 'zustand'
 import { omit } from 'lodash'
-import type { Slide, SlideTheme, PPTElement, PPTAnimation, SlideTemplate } from '@/types/slides'
+import type { Slide, SlideTheme, PPTElement, SlideTemplate } from '@/types/slides'
 
 interface RemovePropData {
   id: string
@@ -13,11 +13,6 @@ interface UpdateElementData {
   slideId?: string
 }
 
-interface FormatedAnimation {
-  animations: PPTAnimation[]
-  autoNext: boolean
-}
-
 export interface SlidesState {
   title: string
   theme: SlideTheme
@@ -26,211 +21,221 @@ export interface SlidesState {
   viewportSize: number
   viewportRatio: number
   templates: SlideTemplate[]
+
+  // Computed properties
+  currentSlide: Slide | null
+
+  // Actions
+  setTitle: (title: string) => void
+  setTheme: (themeProps: Partial<SlideTheme>) => void
+  setViewportSize: (size: number) => void
+  setViewportRatio: (viewportRatio: number) => void
+  setSlides: (slides: Slide[]) => void
+  setTemplates: (templates: SlideTemplate[]) => void
+  addSlide: (slide: Slide | Slide[]) => void
+  updateSlide: (props: Partial<Slide>, slideId?: string) => void
+  removeSlideProps: (data: RemovePropData) => void
+  deleteSlide: (slideId: string | string[]) => void
+  updateSlideIndex: (index: number) => void
+  addElement: (element: PPTElement | PPTElement[]) => void
+  deleteElement: (elementId: string | string[]) => void
+  updateElement: (data: UpdateElementData) => void
+  removeElementProps: (data: RemovePropData) => void
 }
 
-export const useSlidesStore = defineStore('slides', {
-  state: (): SlidesState => ({
-    title: '未命名演示文稿', // 幻灯片标题
-    theme: {
-      themeColors: ['#5b9bd5', '#ed7d31', '#a5a5a5', '#ffc000', '#4472c4', '#70ad47'],
-      fontColor: '#333',
-      fontName: '',
-      backgroundColor: '#fff',
-      shadow: {
-        h: 3,
-        v: 3,
-        blur: 2,
-        color: '#808080',
-      },
-      outline: {
-        width: 2,
-        color: '#525252',
-        style: 'solid',
-      },
-    }, // 主题样式
-    slides: [], // 幻灯片页面数据
-    slideIndex: 0, // 当前页面索引
-    viewportSize: 1000, // 可视区域宽度基数
-    viewportRatio: 0.5625, // 可视区域比例，默认16:9
-    templates: [
-      { name: '山河映红', id: 'template_1', cover: './imgs/template_1.webp', origin: '官方制作' },
-      { name: '都市蓝调', id: 'template_2', cover: './imgs/template_2.webp', origin: '官方制作' },
-      { name: '智感几何', id: 'template_3', cover: './imgs/template_3.webp', origin: '官方制作' },
-      { name: '柔光莫兰迪', id: 'template_4', cover: './imgs/template_4.webp', origin: '官方制作' },
-      { name: '简约绿意', id: 'template_5', cover: './imgs/template_5.webp', origin: '社区贡献+官方深度完善优化' },
-      { name: '暖色复古', id: 'template_6', cover: './imgs/template_6.webp', origin: '社区贡献+官方深度完善优化' },
-      { name: '深邃沉稳', id: 'template_7', cover: './imgs/template_7.webp', origin: '社区贡献+官方深度完善优化' },
-      { name: '浅蓝小清新', id: 'template_8', cover: './imgs/template_8.webp', origin: '社区贡献+官方深度完善优化' },
-    ], // 模板
+// Helper to update computed properties
+const updateComputed = (state: Partial<SlidesState>): Partial<SlidesState> => {
+  const slides = state.slides || []
+  const slideIndex = state.slideIndex !== undefined ? state.slideIndex : 0
+  const currentSlide = slides[slideIndex] || null
+  return { currentSlide }
+}
+
+export const useSlidesStore = create<SlidesState>((set, get) => ({
+  title: '未命名演示文稿',
+  theme: {
+    themeColors: ['#5b9bd5', '#ed7d31', '#a5a5a5', '#ffc000', '#4472c4', '#70ad47'],
+    fontColor: '#333',
+    fontName: '',
+    backgroundColor: '#fff',
+    shadow: {
+      h: 3,
+      v: 3,
+      blur: 2,
+      color: '#808080',
+    },
+    outline: {
+      width: 2,
+      color: '#525252',
+      style: 'solid',
+    },
+  },
+  slides: [],
+  slideIndex: 0,
+  viewportSize: 1000,
+  viewportRatio: 0.5625,
+  templates: [
+    { name: '山河映红', id: 'template_1', cover: './imgs/template_1.webp', origin: '官方制作' },
+    { name: '都市蓝调', id: 'template_2', cover: './imgs/template_2.webp', origin: '官方制作' },
+    { name: '智感几何', id: 'template_3', cover: './imgs/template_3.webp', origin: '官方制作' },
+    { name: '柔光莫兰迪', id: 'template_4', cover: './imgs/template_4.webp', origin: '官方制作' },
+    { name: '简约绿意', id: 'template_5', cover: './imgs/template_5.webp', origin: '社区贡献+官方深度完善优化' },
+    { name: '暖色复古', id: 'template_6', cover: './imgs/template_6.webp', origin: '社区贡献+官方深度完善优化' },
+    { name: '深邃沉稳', id: 'template_7', cover: './imgs/template_7.webp', origin: '社区贡献+官方深度完善优化' },
+    { name: '浅蓝小清新', id: 'template_8', cover: './imgs/template_8.webp', origin: '社区贡献+官方深度完善优化' },
+  ],
+  currentSlide: null,
+
+  setTitle: (title: string) => set({ title: title || '未命名演示文稿' }),
+
+  setTheme: (themeProps: Partial<SlideTheme>) => set((state) => ({ theme: { ...state.theme, ...themeProps } })),
+
+  setViewportSize: (size: number) => set({ viewportSize: size }),
+
+  setViewportRatio: (viewportRatio: number) => set({ viewportRatio: viewportRatio }),
+
+  setSlides: (slides: Slide[]) => set((state) => {
+    const nextState = { ...state, slides }
+    return { ...nextState, ...updateComputed(nextState) }
   }),
 
-  getters: {
-    currentSlide(state) {
-      return state.slides[state.slideIndex]
-    },
-  
-    currentSlideAnimations(state) {
-      const currentSlide = state.slides[state.slideIndex]
-      if (!currentSlide?.animations) return []
+  setTemplates: (templates: SlideTemplate[]) => set({ templates }),
 
-      const els = currentSlide.elements
-      const elIds = els.map(el => el.id)
-      return currentSlide.animations.filter(animation => elIds.includes(animation.elId))
-    },
+  addSlide: (slide: Slide | Slide[]) => set((state) => {
+    const slidesToAdd = Array.isArray(slide) ? slide : [slide]
+    const newSlides = [...state.slides]
+    // clean sectionTag
+    const cleanedSlides = slidesToAdd.map(s => {
+      const copy = { ...s }
+      if (copy.sectionTag) delete copy.sectionTag
+      return copy
+    })
+    
+    const addIndex = state.slideIndex + 1
+    newSlides.splice(addIndex, 0, ...cleanedSlides)
+    
+    const nextState = { ...state, slides: newSlides, slideIndex: addIndex }
+    return { ...nextState, ...updateComputed(nextState) }
+  }),
 
-    // 格式化的当前页动画
-    // 将触发条件为“与上一动画同时”的项目向上合并到序列中的同一位置
-    // 为触发条件为“上一动画之后”项目的上一项添加自动向下执行标记
-    formatedAnimations(state) {
-      const currentSlide = state.slides[state.slideIndex]
-      if (!currentSlide?.animations) return []
+  updateSlide: (props: Partial<Slide>, slideId?: string) => set((state) => {
+    const slideIndex = slideId ? state.slides.findIndex(item => item.id === slideId) : state.slideIndex
+    if (slideIndex === -1) return {}
+    
+    const newSlides = [...state.slides]
+    newSlides[slideIndex] = { ...newSlides[slideIndex], ...props }
+    
+    const nextState = { ...state, slides: newSlides }
+    return { ...nextState, ...updateComputed(nextState) }
+  }),
 
-      const els = currentSlide.elements
-      const elIds = els.map(el => el.id)
-      const animations = currentSlide.animations.filter(animation => elIds.includes(animation.elId))
+  removeSlideProps: (data: RemovePropData) => set((state) => {
+    const { id, propName } = data
+    const newSlides = state.slides.map(slide => {
+      return slide.id === id ? omit(slide, propName) : slide
+    }) as Slide[]
+    
+    const nextState = { ...state, slides: newSlides }
+    return { ...nextState, ...updateComputed(nextState) }
+  }),
 
-      const formatedAnimations: FormatedAnimation[] = []
-      for (const animation of animations) {
-        if (animation.trigger === 'click' || !formatedAnimations.length) {
-          formatedAnimations.push({ animations: [animation], autoNext: false })
-        }
-        else if (animation.trigger === 'meantime') {
-          const last = formatedAnimations[formatedAnimations.length - 1]
-          last.animations = last.animations.filter(item => item.elId !== animation.elId)
-          last.animations.push(animation)
-          formatedAnimations[formatedAnimations.length - 1] = last
-        }
-        else if (animation.trigger === 'auto') {
-          const last = formatedAnimations[formatedAnimations.length - 1]
-          last.autoNext = true
-          formatedAnimations[formatedAnimations.length - 1] = last
-          formatedAnimations.push({ animations: [animation], autoNext: false })
+  deleteSlide: (slideId: string | string[]) => set((state) => {
+    const slidesId = Array.isArray(slideId) ? slideId : [slideId]
+    const slides = JSON.parse(JSON.stringify(state.slides)) as Slide[]
+    
+    const deleteSlidesIndex = []
+    for (const deletedId of slidesId) {
+      const index = slides.findIndex(item => item.id === deletedId)
+      if (index === -1) continue
+      deleteSlidesIndex.push(index)
+
+      const deletedSlideSection = slides[index].sectionTag
+      if (deletedSlideSection) {
+        const handleSlideNext = slides[index + 1]
+        if (handleSlideNext && !handleSlideNext.sectionTag) {
+          delete slides[index].sectionTag
+          slides[index + 1].sectionTag = deletedSlideSection
         }
       }
-      return formatedAnimations
-    },
-  },
+      slides.splice(index, 1)
+    }
+    
+    if (slides.length === 0) {
+      const nextState = { ...state, slides: [], slideIndex: 0 }
+      return { ...nextState, ...updateComputed(nextState) }
+    }
+    
+    let newIndex = Math.min(...deleteSlidesIndex)
+    const maxIndex = slides.length - 1
+    if (newIndex > maxIndex) newIndex = maxIndex
+    
+    const nextState = { ...state, slides, slideIndex: newIndex }
+    return { ...nextState, ...updateComputed(nextState) }
+  }),
 
-  actions: {
-    setTitle(title: string) {
-      if (!title) this.title = '未命名演示文稿'
-      else this.title = title
-    },
+  updateSlideIndex: (index: number) => set((state) => {
+    const nextState = { ...state, slideIndex: index }
+    return { ...nextState, ...updateComputed(nextState) }
+  }),
 
-    setTheme(themeProps: Partial<SlideTheme>) {
-      this.theme = { ...this.theme, ...themeProps }
-    },
-  
-    setViewportSize(size: number) {
-      this.viewportSize = size
-    },
-  
-    setViewportRatio(viewportRatio: number) {
-      this.viewportRatio = viewportRatio
-    },
-  
-    setSlides(slides: Slide[]) {
-      this.slides = slides
-    },
-  
-    setTemplates(templates: SlideTemplate[]) {
-      this.templates = templates
-    },
-  
-    addSlide(slide: Slide | Slide[]) {
-      const slides = Array.isArray(slide) ? slide : [slide]
-      for (const slide of slides) {
-        if (slide.sectionTag) delete slide.sectionTag
-      }
+  addElement: (element: PPTElement | PPTElement[]) => set((state) => {
+    const elementsToAdd = Array.isArray(element) ? element : [element]
+    const currentSlide = state.slides[state.slideIndex]
+    if (!currentSlide) return {}
+    
+    const newSlides = [...state.slides]
+    const newElements = [...currentSlide.elements, ...elementsToAdd]
+    newSlides[state.slideIndex] = { ...currentSlide, elements: newElements }
+    
+    const nextState = { ...state, slides: newSlides }
+    return { ...nextState, ...updateComputed(nextState) }
+  }),
 
-      const addIndex = this.slideIndex + 1
-      this.slides.splice(addIndex, 0, ...slides)
-      this.slideIndex = addIndex
-    },
-  
-    updateSlide(props: Partial<Slide>, slideId?: string) {
-      const slideIndex = slideId ? this.slides.findIndex(item => item.id === slideId) : this.slideIndex
-      this.slides[slideIndex] = { ...this.slides[slideIndex], ...props }
-    },
-  
-    removeSlideProps(data: RemovePropData) {
-      const { id, propName } = data
+  deleteElement: (elementId: string | string[]) => set((state) => {
+    const elementIdList = Array.isArray(elementId) ? elementId : [elementId]
+    const currentSlide = state.slides[state.slideIndex]
+    if (!currentSlide) return {}
+    
+    const newSlides = [...state.slides]
+    const newElements = currentSlide.elements.filter(item => !elementIdList.includes(item.id))
+    newSlides[state.slideIndex] = { ...currentSlide, elements: newElements }
+    
+    const nextState = { ...state, slides: newSlides }
+    return { ...nextState, ...updateComputed(nextState) }
+  }),
 
-      const slides = this.slides.map(slide => {
-        return slide.id === id ? omit(slide, propName) : slide
-      }) as Slide[]
-      this.slides = slides
-    },
-  
-    deleteSlide(slideId: string | string[]) {
-      const slidesId = Array.isArray(slideId) ? slideId : [slideId]
-      const slides: Slide[] = JSON.parse(JSON.stringify(this.slides))
-  
-      const deleteSlidesIndex = []
-      for (const deletedId of slidesId) {
-        const index = slides.findIndex(item => item.id === deletedId)
-        deleteSlidesIndex.push(index)
+  updateElement: (data: UpdateElementData) => set((state) => {
+    const { id, props, slideId } = data
+    const elIdList = typeof id === 'string' ? [id] : id
+    const slideIndex = slideId ? state.slides.findIndex(item => item.id === slideId) : state.slideIndex
+    if (slideIndex === -1) return {}
+    
+    const slide = state.slides[slideIndex]
+    const newElements = slide.elements.map(el => {
+      return elIdList.includes(el.id) ? { ...el, ...props } : el
+    })
+    
+    const newSlides = [...state.slides]
+    newSlides[slideIndex] = { ...slide, elements: newElements as PPTElement[] }
+    
+    const nextState = { ...state, slides: newSlides }
+    return { ...nextState, ...updateComputed(nextState) }
+  }),
 
-        const deletedSlideSection = slides[index].sectionTag
-        if (deletedSlideSection) {
-          const handleSlideNext = slides[index + 1]
-          if (handleSlideNext && !handleSlideNext.sectionTag) {
-            delete slides[index].sectionTag
-            slides[index + 1].sectionTag = deletedSlideSection
-          }
-        }
-
-        slides.splice(index, 1)
-      }
-      let newIndex = Math.min(...deleteSlidesIndex)
-  
-      const maxIndex = slides.length - 1
-      if (newIndex > maxIndex) newIndex = maxIndex
-  
-      this.slideIndex = newIndex
-      this.slides = slides
-    },
-  
-    updateSlideIndex(index: number) {
-      this.slideIndex = index
-    },
-  
-    addElement(element: PPTElement | PPTElement[]) {
-      const elements = Array.isArray(element) ? element : [element]
-      const currentSlideEls = this.slides[this.slideIndex].elements
-      const newEls = [...currentSlideEls, ...elements]
-      this.slides[this.slideIndex].elements = newEls
-    },
-
-    deleteElement(elementId: string | string[]) {
-      const elementIdList = Array.isArray(elementId) ? elementId : [elementId]
-      const currentSlideEls = this.slides[this.slideIndex].elements
-      const newEls = currentSlideEls.filter(item => !elementIdList.includes(item.id))
-      this.slides[this.slideIndex].elements = newEls
-    },
-  
-    updateElement(data: UpdateElementData) {
-      const { id, props, slideId } = data
-      const elIdList = typeof id === 'string' ? [id] : id
-
-      const slideIndex = slideId ? this.slides.findIndex(item => item.id === slideId) : this.slideIndex
-      const slide = this.slides[slideIndex]
-      const elements = slide.elements.map(el => {
-        return elIdList.includes(el.id) ? { ...el, ...props } : el
-      })
-      this.slides[slideIndex].elements = (elements as PPTElement[])
-    },
-  
-    removeElementProps(data: RemovePropData) {
-      const { id, propName } = data
-      const propsNames = typeof propName === 'string' ? [propName] : propName
-  
-      const slideIndex = this.slideIndex
-      const slide = this.slides[slideIndex]
-      const elements = slide.elements.map(el => {
-        return el.id === id ? omit(el, propsNames) : el
-      })
-      this.slides[slideIndex].elements = (elements as PPTElement[])
-    },
-  },
-})
+  removeElementProps: (data: RemovePropData) => set((state) => {
+    const { id, propName } = data
+    const propsNames = typeof propName === 'string' ? [propName] : propName
+    const slideIndex = state.slideIndex
+    const slide = state.slides[slideIndex]
+    
+    const newElements = slide.elements.map(el => {
+      return el.id === id ? omit(el, propsNames) : el
+    })
+    
+    const newSlides = [...state.slides]
+    newSlides[slideIndex] = { ...slide, elements: newElements as PPTElement[] }
+    
+    const nextState = { ...state, slides: newSlides }
+    return { ...nextState, ...updateComputed(nextState) }
+  }),
+}))

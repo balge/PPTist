@@ -1,16 +1,16 @@
-import { computed, type Ref } from 'vue'
+import { useMemo } from 'react'
 import type { ImageElementFilters, ImageElementFilterKeys } from '@/types/slides'
 
-export default (filters: Ref<ImageElementFilters | undefined>) => {
-  const filter = computed(() => {
-    if (!filters.value) return ''
+export default (filters: ImageElementFilters | undefined) => {
+  const filter = useMemo(() => {
+    if (!filters) return ''
     let filter = ''
-    const keys = Object.keys(filters.value) as ImageElementFilterKeys[]
+    const keys = Object.keys(filters) as ImageElementFilterKeys[]
     for (const key of keys) {
-      filter += `${key}(${filters.value[key]}) `
+      filter += `${key}(${filters[key]}) `
     }
     return filter
-  })
+  }, [filters])
 
   return {
     filter,

@@ -1,16 +1,16 @@
-import { computed, type Ref } from 'vue'
+import { useMemo } from 'react'
 
 // 计算元素的翻转样式
-export default (flipH: Ref<boolean | undefined>, flipV: Ref<boolean | undefined>) => {
-  const flipStyle = computed(() => {
+export default (flipH: boolean | undefined, flipV: boolean | undefined) => {
+  const flipStyle = useMemo(() => {
     let style = ''
     
-    if (flipH.value && flipV.value) style = 'rotateX(180deg) rotateY(180deg)'
-    else if (flipV.value) style = 'rotateX(180deg)'
-    else if (flipH.value) style = 'rotateY(180deg)'
+    if (flipH && flipV) style = 'rotateX(180deg) rotateY(180deg)'
+    else if (flipV) style = 'rotateX(180deg)'
+    else if (flipH) style = 'rotateY(180deg)'
 
     return style
-  })
+  }, [flipH, flipV])
 
   return {
     flipStyle,

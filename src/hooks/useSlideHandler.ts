@@ -1,5 +1,4 @@
-import { computed } from 'vue'
-import { storeToRefs } from 'pinia'
+import { useMemo } from 'react'
 import { nanoid } from 'nanoid'
 import { useMainStore, useSlidesStore } from '@/store'
 import type { Slide } from '@/types/slides'
@@ -12,24 +11,23 @@ import useHistorySnapshot from '@/hooks/useHistorySnapshot'
 import useAddSlidesOrElements from '@/hooks/useAddSlidesOrElements'
 
 export default () => {
-  const mainStore = useMainStore()
-  const slidesStore = useSlidesStore()
-  const { selectedSlidesIndex: _selectedSlidesIndex, activeElementIdList } =
-    storeToRefs(mainStore)
-  const { currentSlide, slides, theme, slideIndex } = storeToRefs(slidesStore)
+  const { selectedSlidesIndex: _selectedSlidesIndex, activeElementIdList, setActiveElementIdList, setThumbnailsFocus, updateSelectedSlidesIndex: updateSelectedSlidesIndexAction } = useMainStore()
+  const { currentSlide, slides, theme, slideIndex, updateSlideIndex: updateSlideIndexAction, addSlide, deleteSlide: deleteSlideAction, updateSlide, setSlides } = useSlidesStore()
 
-  const selectedSlidesIndex = computed(() => [
-    ..._selectedSlidesIndex.value,
-    slideIndex.value,
-  ])
-  const selectedSlides = computed(() =>
-    slides.value.filter((item, index) =>
-      selectedSlidesIndex.value.includes(index)
+  const selectedSlidesIndex = useMemo(() => [
+    ..._selectedSlidesIndex,
+    slideIndex,
+  ], [_selectedSlidesIndex, slideIndex])
+
+  const selectedSlides = useMemo(() =>
+    slides.filter((item, index) =>
+      selectedSlidesIndex.includes(index)
     )
-  )
-  const selectedSlidesId = computed(() =>
-    selectedSlides.value.map((item) => item.id)
-  )
+  , [slides, selectedSlidesIndex])
+
+  const selectedSlidesId = useMemo(() =>
+    selectedSlides.map((item) => item.id)
+  , [selectedSlides])
 
   const { pasteTextClipboardData } = usePasteTextClipboardData()
   const { addSlidesFromData } = useAddSlidesOrElements()
@@ -42,12 +40,12 @@ export default () => {
       elements: [],
       background: {
         type: 'solid',
-        color: theme.value.backgroundColor,
+        color: theme.backgroundColor,
       },
     }
-    slidesStore.updateSlideIndex(0)
-    mainStore.setActiveElementIdList([])
-    slidesStore.setSlides([emptySlide])
+    updateSlideIndexAction(0)
+    setActiveElementIdList([])
+    setSlides([emptySlide])
   }
 
   /**
@@ -55,20 +53,20 @@ export default () => {
    * @param command 移动页面焦点命令：上移、下移
    */
   const updateSlideIndex = (command: string) => {
-    if (command === KEYS.UP && slideIndex.value > 0) {
-      if (activeElementIdList.value.length) {
-        mainStore.setActiveElementIdList([])
+    if (command === KEYS.UP && slideIndex > 0) {
+      if (activeElementIdList.length) {
+        setActiveElementIdList([])
       }
-      slidesStore.updateSlideIndex(slideIndex.value - 1)
+      updateSlideIndexAction(slideIndex - 1)
     }
     else if (
       command === KEYS.DOWN &&
-      slideIndex.value < slides.value.length - 1
+      slideIndex < slides.length - 1
     ) {
-      if (activeElementIdList.value.length) {
-        mainStore.setActiveElementIdList([])
+      if (activeElementIdList.length) {
+        setActiveElementIdList([])
       }
-      slidesStore.updateSlideIndex(slideIndex.value + 1)
+      updateSlideIndexAction(slideIndex + 1)
     }
   }
 
@@ -77,12 +75,12 @@ export default () => {
     const text = encrypt(
       JSON.stringify({
         type: 'slides',
-        data: selectedSlides.value,
+        data: selectedSlides,
       })
     )
 
     copyText(text).then(() => {
-      mainStore.setThumbnailsFocus(true)
+      setThumbnailsFocus(true)
     })
   }
 
@@ -102,11 +100,11 @@ export default () => {
       elements: [],
       background: {
         type: 'solid',
-        color: theme.value.backgroundColor,
+        color: theme.backgroundColor,
       },
     }
-    mainStore.setActiveElementIdList([])
-    slidesStore.addSlide(emptySlide)
+    setActiveElementIdList([])
+    addSlide(emptySlide)
     addHistorySnapshot()
   }
 
@@ -122,23 +120,23 @@ export default () => {
       ...slide,
       id: nanoid(10),
     }
-    mainStore.setActiveElementIdList([])
-    slidesStore.addSlide(newSlide)
+    setActiveElementIdList([])
+    addSlide(newSlide)
     addHistorySnapshot()
   }
 
   // 将当前页复制一份到下一页
   const copyAndPasteSlide = () => {
-    const slide = JSON.parse(JSON.stringify(currentSlide.value))
+    const slide = JSON.parse(JSON.stringify(currentSlide))
     addSlidesFromData([slide])
   }
 
   // 删除当前页，若将删除全部页面，则执行重置幻灯片操作
-  const deleteSlide = (targetSlidesId = selectedSlidesId.value) => {
-    if (slides.value.length === targetSlidesId.length) resetSlides()
-    else slidesStore.deleteSlide(targetSlidesId)
+  const deleteSlide = (targetSlidesId = selectedSlidesId) => {
+    if (slides.length === targetSlidesId.length) resetSlides()
+    else deleteSlideAction(targetSlidesId)
 
-    mainStore.updateSelectedSlidesIndex([])
+    updateSelectedSlidesIndexAction([])
 
     addHistorySnapshot()
   }
@@ -146,7 +144,7 @@ export default () => {
   // 将当前页复制后删除（剪切）
   // 由于复制操作会导致多选状态消失，所以需要提前将需要删除的页面ID进行缓存
   const cutSlide = () => {
-    const targetSlidesId = [...selectedSlidesId.value]
+    const targetSlidesId = [...selectedSlidesId]
     copySlide()
     deleteSlide(targetSlidesId)
   }
@@ -154,18 +152,18 @@ export default () => {
   // 选中全部幻灯片
   const selectAllSlide = () => {
     const newSelectedSlidesIndex = Array.from(
-      Array(slides.value.length),
+      Array(slides.length),
       (item, index) => index
     )
-    mainStore.setActiveElementIdList([])
-    mainStore.updateSelectedSlidesIndex(newSelectedSlidesIndex)
+    setActiveElementIdList([])
+    updateSelectedSlidesIndexAction(newSelectedSlidesIndex)
   }
 
   // 拖拽调整幻灯片顺序同步数据
   const sortSlides = (newIndex: number, oldIndex: number) => {
     if (oldIndex === newIndex) return
 
-    const _slides: Slide[] = JSON.parse(JSON.stringify(slides.value))
+    const _slides: Slide[] = JSON.parse(JSON.stringify(slides))
 
     const movingSlide = _slides[oldIndex]
     const movingSlideSection = movingSlide.sectionTag
@@ -187,15 +185,15 @@ export default () => {
     const _slide = _slides[oldIndex]
     _slides.splice(oldIndex, 1)
     _slides.splice(newIndex, 0, _slide)
-    slidesStore.setSlides(_slides)
-    slidesStore.updateSlideIndex(newIndex)
+    setSlides(_slides)
+    updateSlideIndexAction(newIndex)
   }
 
-  const isEmptySlide = computed(() => {
-    if (slides.value.length > 1) return false
-    if (slides.value[0].elements.length > 0) return false
+  const isEmptySlide = useMemo(() => {
+    if (slides.length > 1) return false
+    if (slides[0].elements.length > 0) return false
     return true
-  })
+  }, [slides])
 
   return {
     resetSlides,

@@ -3,7 +3,7 @@ import type { PPTElement, PPTElementLink } from '@/types/slides'
 import useHistorySnapshot from '@/hooks/useHistorySnapshot'
 
 export default () => {
-  const slidesStore = useSlidesStore()
+  const { updateElement, removeElementProps } = useSlidesStore()
 
   const { addHistorySnapshot } = useHistorySnapshot()
 
@@ -19,14 +19,14 @@ export default () => {
       return false
     }
     const props = { link }
-    slidesStore.updateElement({ id: handleElement.id, props })
+    updateElement({ id: handleElement.id, props })
     addHistorySnapshot()
 
     return true
   }
 
   const removeLink = (handleElement: PPTElement) => {
-    slidesStore.removeElementProps({ id: handleElement.id, propName: 'link' })
+    removeElementProps({ id: handleElement.id, propName: 'link' })
     addHistorySnapshot()
   }
 

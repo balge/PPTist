@@ -1,23 +1,27 @@
-import { debounce, throttle} from 'lodash'
+import { useMemo } from 'react'
+import { debounce, throttle } from 'lodash'
 import { useSnapshotStore } from '@/store'
 
 export default () => {
-  const snapshotStore = useSnapshotStore()
+  const { addSnapshot, reDo, unDo } = useSnapshotStore()
 
   // 添加历史快照(历史记录)
-  const addHistorySnapshot = debounce(function() {
-    snapshotStore.addSnapshot()
-  }, 300, { trailing: true })
+  const addHistorySnapshot = useMemo(
+    () => debounce(addSnapshot, 300, { trailing: true }),
+    [addSnapshot]
+  )
 
   // 重做
-  const redo = throttle(function() {
-    snapshotStore.reDo()
-  }, 100, { leading: true, trailing: false })
+  const redo = useMemo(
+    () => throttle(reDo, 100, { leading: true, trailing: false }),
+    [reDo]
+  )
 
   // 撤销
-  const undo = throttle(function() {
-    snapshotStore.unDo()
-  }, 100, { leading: true, trailing: false })
+  const undo = useMemo(
+    () => throttle(unDo, 100, { leading: true, trailing: false }),
+    [unDo]
+  )
 
   return {
     addHistorySnapshot,
