@@ -13,6 +13,7 @@ import {
   ImageElement,
   TextElement,
   ShapeElement,
+  LineElement,
   PlaceholderElement,
 } from "@/views/components/element";
 
@@ -45,7 +46,7 @@ const EditableElement: React.FC<EditableElementProps> = ({
       [ElementTypes.IMAGE]: ImageElement,
       [ElementTypes.TEXT]: TextElement,
       [ElementTypes.SHAPE]: ShapeElement,
-      [ElementTypes.LINE]: PlaceholderElement,
+      [ElementTypes.LINE]: LineElement,
       [ElementTypes.CHART]: PlaceholderElement,
       [ElementTypes.TABLE]: PlaceholderElement,
       [ElementTypes.LATEX]: PlaceholderElement,
@@ -169,17 +170,7 @@ const EditableElement: React.FC<EditableElementProps> = ({
       className="editable-element"
       id={`editable-element-${elementInfo.id}`}
       style={{
-        position: "absolute",
-        left: elementInfo.left,
-        top: elementInfo.top,
-        width: elementInfo.width,
-        height: (elementInfo as any).height,
-        transform: `rotate(${(elementInfo as any).rotate || 0}deg)`,
         zIndex: elementIndex,
-      }}
-      onMouseDown={(e) => {
-        e.stopPropagation();
-        selectElement(e, elementInfo);
       }}
     >
       <CurrentElementComponent

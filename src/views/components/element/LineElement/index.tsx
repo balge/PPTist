@@ -46,6 +46,8 @@ const LineElement: React.FC<ElementProps> = ({ elementInfo, selectElement, conte
       style={{
         top: element.top + 'px',
         left: element.left + 'px',
+        width: svgWidth + 'px',
+        height: svgHeight + 'px',
       }}
     >
       <div 

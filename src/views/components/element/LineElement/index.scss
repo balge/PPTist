@@ -3,7 +3,7 @@
 
 .editable-element-shape {
   position: absolute;
-  pointer-events: none;
+  pointer-events: auto;
 }
 
 .element-content {
@@ -17,6 +17,6 @@
   }
 }
 .line-path, .line-point {
-  pointer-events: all;
+  pointer-events: auto;
   cursor: move;
 }

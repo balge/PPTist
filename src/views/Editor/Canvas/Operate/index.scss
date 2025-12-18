@@ -1,9 +1,165 @@
-@import '@/assets/styles/variable.scss';
-@import '@/assets/styles/mixin.scss';
+.operate {
+  position: absolute;
+  z-index: 100;
+  user-select: none;
+  box-sizing: border-box;
+
+  &.is-selected {
+    z-index: 101;
+  }
+
+  &.multi-select {
+    opacity: 0.5;
+  }
+
+  .left-top,
+  .right-top,
+  .left-bottom,
+  .right-bottom,
+  .top,
+  .bottom,
+  .left,
+  .right {
+    /* 通用操作点基础样式 */
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: #fff;
+    border: 1px solid $themeColor;
+    z-index: 1;
+    border-radius: 50%;
+    transition: background-color .12s ease, border-color .12s ease;
+  }
+
+  /* 适配所有使用 ResizeHandler 的操作点（包含 line 的 start/end/ctrl） */
+  .resize-handler {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: #fff;
+    border: 1px solid $themeColor;
+    z-index: 1;
+    border-radius: 50%;
+    transition: background-color .12s ease, border-color .12s ease;
+    cursor: pointer;
+  }
+
+  .left-top {
+    left: -5px;
+    top: -5px;
+    cursor: nw-resize;
+  }
+
+  .right-top {
+    right: -5px;
+    top: -5px;
+    cursor: ne-resize;
+  }
+
+  .left-bottom {
+    left: -5px;
+    bottom: -5px;
+    cursor: sw-resize;
+  }
+
+  .right-bottom {
+    right: -5px;
+    bottom: -5px;
+    cursor: se-resize;
+  }
+
+  .top {
+    left: 50%;
+    margin-left: -5px;
+    top: -5px;
+    cursor: n-resize;
+  }
+
+  .bottom {
+    left: 50%;
+    margin-left: -5px;
+    bottom: -5px;
+    cursor: s-resize;
+  }
+
+  .left {
+    top: 50%;
+    margin-top: -5px;
+    left: -5px;
+    cursor: w-resize;
+  }
+
+  .right {
+    top: 50%;
+    margin-top: -5px;
+    right: -5px;
+    cursor: e-resize;
+  }
+
+  .rotate,
+  .rotate-handler {
+    position: absolute;
+    left: 50%;
+    margin-left: -5px;
+    top: -25px;
+    width: 10px;
+    height: 10px;
+    background: #fff;
+    border: 1px solid $themeColor;
+    cursor: grab;
+    border-radius: 50%;
+    transition: background-color .12s ease, border-color .12s ease;
+
+    &:active {
+      cursor: grabbing;
+    }
+  }
+  .left-top:hover,
+  .right-top:hover,
+  .left-bottom:hover,
+  .right-bottom:hover,
+  .top:hover,
+  .bottom:hover,
+  .left:hover,
+  .right:hover,
+  .resize-handler:hover,
+  .rotate-handler:hover {
+    background: $themeColor;
+    border-color: $themeColor;
+  }
+
+  .animation-index {
+    position: absolute;
+    top: 0;
+    left: -24px;
+    width: 20px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    pointer-events: none;
+
+    .index-item {
+      width: 18px;
+      height: 18px;
+      background: $themeColor;
+      color: #fff;
+      font-size: 12px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 2px;
+    }
+  }
+}
 
 .border-line {
   border: 0 dashed $themeColor;
-  @include absolute-0();
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
 
   &.top {
     border-top-width: 1px;
@@ -50,85 +206,5 @@
       width: 16px;
       height: calc(100% + 16px);
     }
-  }
-}
-
-.resize-handler {
-  position: absolute;
-  width: 10px;
-  height: 10px;
-  left: 0;
-  top: 0;
-  margin: -5px 0 0 -5px;
-  border: 1px solid $themeColor;
-  background-color: #fff;
-  border-radius: 1px;
-  cursor: pointer;
-
-  &.left-top.rotate-0,
-  &.right-bottom.rotate-0,
-  &.left.rotate-45,
-  &.right.rotate-45,
-  &.left-bottom.rotate-90,
-  &.right-top.rotate-90,
-  &.top.rotate-135,
-  &.bottom.rotate-135 {
-    cursor: nwse-resize;
-  }
-  &.top.rotate-0,
-  &.bottom.rotate-0,
-  &.left-top.rotate-45,
-  &.right-bottom.rotate-45,
-  &.left.rotate-90,
-  &.right.rotate-90,
-  &.left-bottom.rotate-135,
-  &.right-top.rotate-135 {
-    cursor: ns-resize;
-  }
-  &.left-bottom.rotate-0,
-  &.right-top.rotate-0,
-  &.top.rotate-45,
-  &.bottom.rotate-45,
-  &.left-top.rotate-90,
-  &.right-bottom.rotate-90,
-  &.left.rotate-135,
-  &.right.rotate-135 {
-    cursor: nesw-resize;
-  }
-  &.left.rotate-0,
-  &.right.rotate-0,
-  &.left-bottom.rotate-45,
-  &.right-top.rotate-45,
-  &.top.rotate-90,
-  &.bottom.rotate-90,
-  &.left-top.rotate-135,
-  &.right-bottom.rotate-135 {
-    cursor: ew-resize;
-  }
-}
-
-.rotate-handler {
-  position: absolute;
-  width: 10px;
-  height: 10px;
-  top: -25px;
-  margin-left: -5px;
-  border: 1px solid $themeColor;
-  background-color: #fff;
-  border-radius: 1px;
-  cursor: grab;
-
-  &:active {
-    cursor: grabbing;
-  }
-}
-
-.operate {
-  position: absolute;
-  z-index: 100;
-  user-select: none;
-
-  &.multi-select {
-    opacity: 0.2;
   }
 }

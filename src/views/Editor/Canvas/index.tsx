@@ -1,12 +1,22 @@
-import React, { useRef, useMemo, useState } from "react";
+import React, {
+  useRef,
+  useMemo,
+  useState,
+  useCallback,
+  useEffect,
+} from "react";
+import { throttle } from "lodash";
 import { useMainStore, useSlidesStore, useKeyboardStore } from "@/store";
 import type { PPTElement } from "@/types/slides";
+import { ElementTypes } from "@/types/slides";
+import { KEYS } from "@/configs/hotkey";
 import type {
   AlignmentLineProps,
   OperateResizeHandlers,
   OperateLineHandlers,
 } from "@/types/edit";
 import useCreateElement from "@/hooks/useCreateElement";
+import useSlideHandler from "@/hooks/useSlideHandler";
 
 import useScaleElement from "./hooks/useScaleElement";
 import useSelectElement from "./hooks/useSelectElement";
@@ -29,6 +39,7 @@ import ElementCreateSelection from "./ElementCreateSelection";
 import ShapeCreateCanvas from "./ShapeCreateCanvas";
 import MultiSelectOperate from "./Operate/MultiSelectOperate";
 import AlignmentLine from "./AlignmentLine";
+import LinkDialog from "./LinkDialog";
 import "./index.scss";
 
 const Canvas: React.FC = () => {
@@ -40,13 +51,17 @@ const Canvas: React.FC = () => {
     creatingElement,
     creatingCustomShape,
     gridLinesState,
+    setCanvasPercentage,
+    setHandleElementId,
   } = useMainStore();
   const { currentSlide } = useSlidesStore();
   const { spaceKeyState } = useKeyboardStore();
-  const { createCustomShapeElement } = useCreateElement();
+  const { createCustomShapeElement, createTextElement } = useCreateElement();
+  const { updateSlideIndex } = useSlideHandler();
 
   const containerRef = useRef<HTMLDivElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
+  const [linkDialogVisible, setLinkDialogVisible] = useState(false);
 
   const elementList = currentSlide?.elements || [];
 
@@ -171,6 +186,57 @@ const Canvas: React.FC = () => {
     handleMouseDown(e);
   };
 
+  const handleDblClick = (e: React.MouseEvent) => {
+    if (!currentSlide) return;
+
+    if (activeElementIdList.length) {
+      const element = currentSlide.elements.find(
+        (el) => el.id === activeElementIdList[0]
+      );
+      if (element && element.type === ElementTypes.TEXT) {
+        setHandleElementId(element.id);
+      }
+    } else {
+      const { clientX, clientY } = e;
+      const { x, y } = viewportRef.current!.getBoundingClientRect();
+      const left = (clientX - x) / canvasScale;
+      const top = (clientY - y) / canvasScale;
+      createTextElement({ left, top, width: 200, height: 50 });
+    }
+  };
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const handleWheel = throttle(
+      (e: WheelEvent) => {
+        if (e.ctrlKey) return;
+        e.preventDefault();
+
+        if (e.deltaY > 0) {
+          const { slideIndex, updateSlideIndex } = useSlidesStore.getState();
+          updateSlideIndex(slideIndex + 1);
+        } else if (e.deltaY < 0) {
+          const { slideIndex, updateSlideIndex } = useSlidesStore.getState();
+          updateSlideIndex(slideIndex - 1);
+        }
+      },
+      100,
+      { leading: true, trailing: false }
+    );
+
+    container.addEventListener("wheel", handleWheel, { passive: false });
+
+    return () => {
+      container.removeEventListener("wheel", handleWheel);
+    };
+  }, []);
+
+  const openLinkDialog = () => {
+    setLinkDialogVisible(true);
+  };
+
   // Wrappers for Operate handlers
   const handleRotateElement = (e: React.MouseEvent, element: any) => {
     rotateElement(e.nativeEvent, element);
@@ -209,8 +275,13 @@ const Canvas: React.FC = () => {
       className="canvas-container"
       ref={containerRef}
       onMouseDown={handleContainerMouseDown}
+      onDoubleClick={handleDblClick}
       onDragOver={(e) => e.preventDefault()}
     >
+      {linkDialogVisible && (
+        <LinkDialog onClose={() => setLinkDialogVisible(false)} />
+      )}
+
       {creatingElement && (
         <ElementCreateSelection onCreated={insertElementFromCreateSelection} />
       )}
@@ -277,6 +348,7 @@ const Canvas: React.FC = () => {
               scaleElement={handleScaleElement}
               dragLineElement={handleDragLineElement}
               moveShapeKeypoint={handleMoveShapeKeypoint}
+              openLinkDialog={openLinkDialog}
             />
           ))}
         </div>

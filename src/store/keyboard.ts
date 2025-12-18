@@ -15,9 +15,9 @@ export interface KeyboardState {
 }
 
 export const useKeyboardStore = create<KeyboardState>((set) => ({
-  ctrlKeyState: false,
-  shiftKeyState: false,
-  spaceKeyState: false,
+  ctrlKeyState: false, // ctrl键按下状态
+  shiftKeyState: false, // shift键按下状态
+  spaceKeyState: false, // space键按下状态
   ctrlOrShiftKeyActive: false,
 
   setCtrlKeyState: (active: boolean) =>

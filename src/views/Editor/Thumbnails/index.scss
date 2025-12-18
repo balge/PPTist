@@ -7,23 +7,11 @@
   flex-direction: column;
   user-select: none;
   height: 100%;
-  width: 160px; // 固定宽度，或者由父容器决定
 }
 .thumbnail-list {
   padding: 5px 0;
   flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
-
-  // 滚动条样式
-  &::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-  &::-webkit-scrollbar-thumb {
-    border-radius: 3px;
-    background-color: #ddd;
-  }
+  overflow: auto;
 }
 .thumbnail-item {
   display: flex;

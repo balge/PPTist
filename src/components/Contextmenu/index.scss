@@ -45,7 +45,7 @@ $subMenuWidth: 120px;
     display: block;
   }
 
-  &:not(.disable):hover > .has-children.has-handler::after {
+  &:not(.disable):hover > .menu-item-content.has-children.has-handler::after {
     transform: scale(1);
   }
 
