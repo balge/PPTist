@@ -13,14 +13,14 @@
 <script lang="ts" setup>
 withDefaults(
   defineProps<{
-    type?: "horizontal" | "vertical";
+    type?: 'horizontal' | 'vertical';
     margin?: number;
   }>(),
   {
-    type: "horizontal",
+    type: 'horizontal',
     margin: -1,
   }
-);
+)
 </script>
 
 <style lang="scss" scoped>

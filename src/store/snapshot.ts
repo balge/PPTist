@@ -1,6 +1,5 @@
 import { defineStore } from 'pinia'
-import type { IndexableTypeArray } from 'dexie'
-import { db, type Snapshot } from '@/utils/database'
+import type { Slide } from '@/types/slides'
 
 import { useSlidesStore } from './slides'
 import { useMainStore } from './main'
@@ -8,12 +7,20 @@ import { useMainStore } from './main'
 export interface ScreenState {
   snapshotCursor: number;
   snapshotLength: number;
+  snapshots: Snapshot[];
+}
+
+/** 内存快照结构 */
+interface Snapshot {
+  index: number;
+  slides: Slide[];
 }
 
 export const useSnapshotStore = defineStore('snapshot', {
   state: (): ScreenState => ({
     snapshotCursor: -1, // 历史快照指针
     snapshotLength: 0, // 历史快照长度
+    snapshots: [], // 历史快照列表（内存）
   }),
 
   getters: {
@@ -28,75 +35,75 @@ export const useSnapshotStore = defineStore('snapshot', {
   },
 
   actions: {
-    /** 设置快照指针位置 */
+    /**
+     * 设置快照指针位置
+     * @param cursor 新的指针位置
+     */
     setSnapshotCursor(cursor: number) {
       this.snapshotCursor = cursor
     },
-    /** 设置快照总长度 */
+    /**
+     * 设置快照总长度
+     * @param length 快照总长度
+     */
     setSnapshotLength(length: number) {
       this.snapshotLength = length
     },
 
-    /** 添加当前状态的快照，并维护快照指针与长度 */
-    async addSnapshot() {
+    /**
+     * 添加当前状态的快照（内存管理），并维护快照指针与长度
+     * - 若当前指针不在末尾，截断指针之后的快照
+     * - 限制快照数量为 20，超过则移除头部
+     * - 保持撤回后页面焦点不变：更新倒数第二个快照的 index
+     */
+    addSnapshot() {
       const slidesStore = useSlidesStore()
 
-      // 获取当前indexeddb中全部快照的ID
-      const allKeys = await db.snapshots.orderBy('id').keys()
-
-      let needDeleteKeys: IndexableTypeArray = []
-
-      // 记录需要删除的快照ID
-      // 若当前快照指针不处在最后一位，那么再添加快照时，应该将当前指针位置后面的快照全部删除，对应的实际情况是：
-      // 用户撤回多次后，再进行操作（添加快照），此时原先被撤销的快照都应该被删除
+      // 若当前指针不在末尾，截断后续快照
       if (
         this.snapshotCursor >= 0 &&
-        this.snapshotCursor < allKeys.length - 1
+        this.snapshotCursor < this.snapshots.length - 1
       ) {
-        needDeleteKeys = allKeys.slice(this.snapshotCursor + 1)
+        this.snapshots = this.snapshots.slice(0, this.snapshotCursor + 1)
       }
 
       // 添加新快照
-      const snapshot = {
+      const snapshot: Snapshot = {
         index: slidesStore.slideIndex,
         slides: JSON.parse(JSON.stringify(slidesStore.slides)),
       }
-      await db.snapshots.add(snapshot)
 
-      // 计算当前快照长度，用于设置快照指针的位置（此时指针应该处在最后一位，即：快照长度 - 1）
-      let snapshotLength = allKeys.length - needDeleteKeys.length + 1
+      // 快照数大于1时，保证撤回后维持页面焦点不变：更新倒数第二个快照 index
+      if (this.snapshots.length >= 1) {
+        const prevIndex = this.snapshots.length - 1
+        this.snapshots[prevIndex].index = slidesStore.slideIndex
+      }
 
-      // 快照数量超过长度限制时，应该将头部多余的快照删除
+      this.snapshots.push(snapshot)
+
+      // 快照数量限制
       const snapshotLengthLimit = 20
-      if (snapshotLength > snapshotLengthLimit) {
-        needDeleteKeys.push(allKeys[0])
-        snapshotLength--
+      if (this.snapshots.length > snapshotLengthLimit) {
+        // 头部移除一个
+        this.snapshots.shift()
+        // 指针位置移至尾部（固定为最新）
       }
 
-      // 快照数大于1时，需要保证撤回操作后维持页面焦点不变：也就是将倒数第二个快照对应的索引设置为当前页的索引
-      // https://github.com/pipipi-pikachu/PPTist/issues/27
-      if (snapshotLength >= 2) {
-        db.snapshots.update(allKeys[snapshotLength - 2] as number, {
-          index: slidesStore.slideIndex,
-        })
-      }
-
-      await db.snapshots.bulkDelete(needDeleteKeys as number[])
-
-      this.setSnapshotCursor(snapshotLength - 1)
-      this.setSnapshotLength(snapshotLength)
+      this.setSnapshotCursor(this.snapshots.length - 1)
+      this.setSnapshotLength(this.snapshots.length)
     },
 
-    /** 撤销到上一个快照并恢复状态 */
-    async unDo() {
+    /**
+     * 撤销到上一个快照并恢复状态（内存）
+     */
+    unDo() {
       if (this.snapshotCursor <= 0) return
 
       const slidesStore = useSlidesStore()
       const mainStore = useMainStore()
 
       const snapshotCursor = this.snapshotCursor - 1
-      const snapshots: Snapshot[] = await db.snapshots.orderBy('id').toArray()
-      const snapshot = snapshots[snapshotCursor]
+      const snapshot = this.snapshots[snapshotCursor]
       const { index, slides } = snapshot
 
       const slideIndex = index > slides.length - 1 ? slides.length - 1 : index
@@ -107,16 +114,17 @@ export const useSnapshotStore = defineStore('snapshot', {
       mainStore.setActiveElementIdList([])
     },
 
-    /** 重做到下一个快照并恢复状态 */
-    async reDo() {
+    /**
+     * 重做到下一个快照并恢复状态（内存）
+     */
+    reDo() {
       if (this.snapshotCursor >= this.snapshotLength - 1) return
 
       const slidesStore = useSlidesStore()
       const mainStore = useMainStore()
 
       const snapshotCursor = this.snapshotCursor + 1
-      const snapshots: Snapshot[] = await db.snapshots.orderBy('id').toArray()
-      const snapshot = snapshots[snapshotCursor]
+      const snapshot = this.snapshots[snapshotCursor]
       const { index, slides } = snapshot
 
       const slideIndex = index > slides.length - 1 ? slides.length - 1 : index

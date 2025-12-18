@@ -8,13 +8,13 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, onMounted, onUnmounted, useTemplateRef, watch } from "vue";
-import { debounce } from "lodash";
-import { storeToRefs } from "pinia";
-import { useKeyboardStore, useMainStore } from "@/store";
-import type { EditorView } from "prosemirror-view";
-import { toggleMark, wrapIn, lift } from "prosemirror-commands";
-import { initProsemirrorEditor, createDocument } from "@/utils/prosemirror";
+import { computed, onMounted, onUnmounted, useTemplateRef, watch } from 'vue'
+import { debounce } from 'lodash'
+import { storeToRefs } from 'pinia'
+import { useKeyboardStore, useMainStore } from '@/store'
+import type { EditorView } from 'prosemirror-view'
+import { toggleMark, wrapIn, lift } from 'prosemirror-commands'
+import { initProsemirrorEditor, createDocument } from '@/utils/prosemirror'
 import {
   isActiveOfParentNodeType,
   findNodesWithSameMark,
@@ -23,22 +23,22 @@ import {
   addMark,
   markActive,
   getFontsize,
-} from "@/utils/prosemirror/utils";
+} from '@/utils/prosemirror/utils'
 import emitter, {
   EmitterEvents,
   type RichTextAction,
   type RichTextCommand,
-} from "@/utils/emitter";
-import { alignmentCommand } from "@/utils/prosemirror/commands/setTextAlign";
+} from '@/utils/emitter'
+import { alignmentCommand } from '@/utils/prosemirror/commands/setTextAlign'
 import {
   indentCommand,
   textIndentCommand,
-} from "@/utils/prosemirror/commands/setTextIndent";
-import { toggleList } from "@/utils/prosemirror/commands/toggleList";
-import { setListStyle } from "@/utils/prosemirror/commands/setListStyle";
-import { replaceText } from "@/utils/prosemirror/commands/replaceText";
-import type { TextFormatPainterKeys } from "@/types/edit";
-import { KEYS } from "@/configs/hotkey";
+} from '@/utils/prosemirror/commands/setTextIndent'
+import { toggleList } from '@/utils/prosemirror/commands/toggleList'
+import { setListStyle } from '@/utils/prosemirror/commands/setListStyle'
+import { replaceText } from '@/utils/prosemirror/commands/replaceText'
+import type { TextFormatPainterKeys } from '@/types/edit'
+import { KEYS } from '@/configs/hotkey'
 
 const props = withDefaults(
   defineProps<{
@@ -53,324 +53,353 @@ const props = withDefaults(
     editable: false,
     autoFocus: false,
   }
-);
+)
 
 const emit = defineEmits<{
-  (event: "update", payload: { value: string; ignore: boolean }): void;
-  (event: "focus"): void;
-  (event: "blur"): void;
-  (event: "mousedown", payload: MouseEvent): void;
-}>();
+  (event: 'update', payload: { value: string; ignore: boolean }): void;
+  (event: 'focus'): void;
+  (event: 'blur'): void;
+  (event: 'mousedown', payload: MouseEvent): void;
+}>()
 
-const mainStore = useMainStore();
+const mainStore = useMainStore()
 const {
   handleElementId,
   textFormatPainter,
   richTextAttrs,
   activeElementIdList,
-} = storeToRefs(mainStore);
-const { ctrlOrShiftKeyActive } = storeToRefs(useKeyboardStore());
+} = storeToRefs(mainStore)
+const { ctrlOrShiftKeyActive } = storeToRefs(useKeyboardStore())
 
-const editorViewRef = useTemplateRef<HTMLElement>("editorViewRef");
-let editorView: EditorView;
+const editorViewRef = useTemplateRef<HTMLElement>('editorViewRef')
+let editorView: EditorView
 
 // 富文本的各种交互事件监听：
 // 聚焦时取消全局快捷键事件
 // 输入文字时同步数据到vuex
 // 点击鼠标和键盘时同步富文本状态到工具栏
 const handleInput = debounce(
-  function (isHanldeHistory = false) {
+  function(isHanldeHistory = false) {
     if (
-      props.value.replace(/ style=\"\"/g, "") ===
-      editorView.dom.innerHTML.replace(/ style=\"\"/g, "")
-    )
-      return;
-    emit("update", {
+      props.value.replace(/ style=\"\"/g, '') ===
+      editorView.dom.innerHTML.replace(/ style=\"\"/g, '')
+    ) {
+      return
+    }
+    emit('update', {
       value: editorView.dom.innerHTML,
       ignore: isHanldeHistory,
-    });
+    })
   },
   300,
   { trailing: true }
-);
+)
 
 const handleFocus = () => {
   // 多选且按下了ctrl或shift键时，不禁用全局快捷键
   if (!ctrlOrShiftKeyActive.value || activeElementIdList.value.length <= 1) {
-    mainStore.setDisableHotkeysState(true);
+    mainStore.setDisableHotkeysState(true)
   }
-  emit("focus");
-};
+  emit('focus')
+}
 
 const handleBlur = () => {
-  mainStore.setDisableHotkeysState(false);
-  emit("blur");
-};
+  mainStore.setDisableHotkeysState(false)
+  emit('blur')
+}
 
 const handleClick = debounce(
-  function () {
+  function() {
     const attrs = getTextAttrs(editorView, {
       color: props.defaultColor,
       fontname: props.defaultFontName,
-    });
-    mainStore.setRichtextAttrs(attrs);
+    })
+    mainStore.setRichtextAttrs(attrs)
   },
   30,
   { trailing: true }
-);
+)
 
 const handleKeydown = (editorView: EditorView, e: KeyboardEvent) => {
-  const { ctrlKey, shiftKey, metaKey } = e;
-  const ctrlActive = ctrlKey || shiftKey || metaKey;
-  const key = e.key.toUpperCase();
+  const { ctrlKey, shiftKey, metaKey } = e
+  const ctrlActive = ctrlKey || shiftKey || metaKey
+  const key = e.key.toUpperCase()
 
-  const isHanldeHistory = ctrlActive && (key === KEYS.Z || key === KEYS.Y);
+  const isHanldeHistory = ctrlActive && (key === KEYS.Z || key === KEYS.Y)
 
-  handleInput(isHanldeHistory);
-  handleClick();
-};
+  handleInput(isHanldeHistory)
+  handleClick()
+}
 
 // 将富文本内容同步到DOM
-const textContent = computed(() => props.value);
+const textContent = computed(() => props.value)
 watch(textContent, () => {
-  if (!editorView) return;
-  if (editorView.hasFocus()) return;
+  if (!editorView) return
+  if (editorView.hasFocus()) return
 
-  const { doc, tr } = editorView.state;
+  const { doc, tr } = editorView.state
   editorView.dispatch(
     tr.replaceRangeWith(0, doc.content.size, createDocument(textContent.value))
-  );
-});
+  )
+})
 
 // 打开/关闭编辑器的编辑模式
 watch(
   () => props.editable,
   () => {
-    editorView.setProps({ editable: () => props.editable });
+    editorView.setProps({ editable: () => props.editable })
   }
-);
+)
 
 // 暴露 focus 方法
-const focus = () => editorView.focus();
-defineExpose({ focus });
+const focus = () => editorView.focus()
+defineExpose({ focus })
 
 // 执行富文本命令（可以是一个或多个）
 // 部分命令在执行前先判断当前选区是否为空，如果选区为空先进行全选操作
 const execCommand = ({ target, action }: RichTextCommand) => {
-  if (!target && handleElementId.value !== props.elementId) return;
-  if (target && target !== props.elementId) return;
+  if (!target && handleElementId.value !== props.elementId) return
+  if (target && target !== props.elementId) return
 
-  const actions = "command" in action ? [action] : action;
+  const actions = 'command' in action ? [action] : action
 
   for (const item of actions) {
-    if (item.command === "fontname" && item.value !== undefined) {
+    if (item.command === 'fontname' && item.value !== undefined) {
       const mark = editorView.state.schema.marks.fontname.create({
         fontname: item.value,
-      });
-      autoSelectAll(editorView);
-      addMark(editorView, mark);
+      })
+      autoSelectAll(editorView)
+      addMark(editorView, mark)
 
       if (item.value && !document.fonts.check(`16px ${item.value}`)) {
-        console.warning("字体需要等待加载下载后生效，请稍等");
+        console.warning('字体需要等待加载下载后生效，请稍等')
       }
-    } else if (item.command === "fontsize" && item.value) {
+    }
+    else if (item.command === 'fontsize' && item.value) {
       const mark = editorView.state.schema.marks.fontsize.create({
         fontsize: item.value,
-      });
-      autoSelectAll(editorView);
-      addMark(editorView, mark);
-      setListStyle(editorView, { key: "fontsize", value: item.value });
-    } else if (item.command === "fontsize-add") {
-      const step = item.value ? +item.value : 2;
-      autoSelectAll(editorView);
-      const fontsize = getFontsize(editorView) + step + "px";
-      const mark = editorView.state.schema.marks.fontsize.create({ fontsize });
-      addMark(editorView, mark);
-      setListStyle(editorView, { key: "fontsize", value: fontsize });
-    } else if (item.command === "fontsize-reduce") {
-      const step = item.value ? +item.value : 2;
-      autoSelectAll(editorView);
-      let fontsize = getFontsize(editorView) - step;
-      if (fontsize < 12) fontsize = 12;
+      })
+      autoSelectAll(editorView)
+      addMark(editorView, mark)
+      setListStyle(editorView, { key: 'fontsize', value: item.value })
+    }
+    else if (item.command === 'fontsize-add') {
+      const step = item.value ? +item.value : 2
+      autoSelectAll(editorView)
+      const fontsize = getFontsize(editorView) + step + 'px'
+      const mark = editorView.state.schema.marks.fontsize.create({ fontsize })
+      addMark(editorView, mark)
+      setListStyle(editorView, { key: 'fontsize', value: fontsize })
+    }
+    else if (item.command === 'fontsize-reduce') {
+      const step = item.value ? +item.value : 2
+      autoSelectAll(editorView)
+      let fontsize = getFontsize(editorView) - step
+      if (fontsize < 12) fontsize = 12
       const mark = editorView.state.schema.marks.fontsize.create({
-        fontsize: fontsize + "px",
-      });
-      addMark(editorView, mark);
-      setListStyle(editorView, { key: "fontsize", value: fontsize + "px" });
-    } else if (item.command === "color" && item.value) {
+        fontsize: fontsize + 'px',
+      })
+      addMark(editorView, mark)
+      setListStyle(editorView, { key: 'fontsize', value: fontsize + 'px' })
+    }
+    else if (item.command === 'color' && item.value) {
       const mark = editorView.state.schema.marks.forecolor.create({
         color: item.value,
-      });
-      autoSelectAll(editorView);
-      addMark(editorView, mark);
-      setListStyle(editorView, { key: "color", value: item.value });
-    } else if (item.command === "backcolor" && item.value) {
+      })
+      autoSelectAll(editorView)
+      addMark(editorView, mark)
+      setListStyle(editorView, { key: 'color', value: item.value })
+    }
+    else if (item.command === 'backcolor' && item.value) {
       const mark = editorView.state.schema.marks.backcolor.create({
         backcolor: item.value,
-      });
-      autoSelectAll(editorView);
-      addMark(editorView, mark);
-    } else if (item.command === "bold") {
-      autoSelectAll(editorView);
+      })
+      autoSelectAll(editorView)
+      addMark(editorView, mark)
+    }
+    else if (item.command === 'bold') {
+      autoSelectAll(editorView)
       toggleMark(editorView.state.schema.marks.strong)(
         editorView.state,
         editorView.dispatch
-      );
-    } else if (item.command === "em") {
-      autoSelectAll(editorView);
+      )
+    }
+    else if (item.command === 'em') {
+      autoSelectAll(editorView)
       toggleMark(editorView.state.schema.marks.em)(
         editorView.state,
         editorView.dispatch
-      );
-    } else if (item.command === "underline") {
-      autoSelectAll(editorView);
+      )
+    }
+    else if (item.command === 'underline') {
+      autoSelectAll(editorView)
       toggleMark(editorView.state.schema.marks.underline)(
         editorView.state,
         editorView.dispatch
-      );
-    } else if (item.command === "strikethrough") {
-      autoSelectAll(editorView);
+      )
+    }
+    else if (item.command === 'strikethrough') {
+      autoSelectAll(editorView)
       toggleMark(editorView.state.schema.marks.strikethrough)(
         editorView.state,
         editorView.dispatch
-      );
-    } else if (item.command === "subscript") {
+      )
+    }
+    else if (item.command === 'subscript') {
       toggleMark(editorView.state.schema.marks.subscript)(
         editorView.state,
         editorView.dispatch
-      );
-    } else if (item.command === "superscript") {
+      )
+    }
+    else if (item.command === 'superscript') {
       toggleMark(editorView.state.schema.marks.superscript)(
         editorView.state,
         editorView.dispatch
-      );
-    } else if (item.command === "blockquote") {
+      )
+    }
+    else if (item.command === 'blockquote') {
       const isBlockquote = isActiveOfParentNodeType(
-        "blockquote",
+        'blockquote',
         editorView.state
-      );
-      if (isBlockquote) lift(editorView.state, editorView.dispatch);
-      else
+      )
+      if (isBlockquote) lift(editorView.state, editorView.dispatch)
+      else {
         wrapIn(editorView.state.schema.nodes.blockquote)(
           editorView.state,
           editorView.dispatch
-        );
-    } else if (item.command === "code") {
+        )
+      }
+    }
+    else if (item.command === 'code') {
       toggleMark(editorView.state.schema.marks.code)(
         editorView.state,
         editorView.dispatch
-      );
-    } else if (item.command === "align" && item.value) {
-      alignmentCommand(editorView, item.value);
-    } else if (item.command === "indent" && item.value) {
-      indentCommand(editorView, +item.value);
-    } else if (item.command === "textIndent" && item.value) {
-      textIndentCommand(editorView, +item.value);
-    } else if (item.command === "bulletList") {
-      const listStyleType = item.value || "";
+      )
+    }
+    else if (item.command === 'align' && item.value) {
+      alignmentCommand(editorView, item.value)
+    }
+    else if (item.command === 'indent' && item.value) {
+      indentCommand(editorView, +item.value)
+    }
+    else if (item.command === 'textIndent' && item.value) {
+      textIndentCommand(editorView, +item.value)
+    }
+    else if (item.command === 'bulletList') {
+      const listStyleType = item.value || ''
       const { bullet_list: bulletList, list_item: listItem } =
-        editorView.state.schema.nodes;
+        editorView.state.schema.nodes
       const textStyle = {
         color: richTextAttrs.value.color,
         fontsize: richTextAttrs.value.fontsize,
-      };
+      }
       toggleList(
         bulletList,
         listItem,
         listStyleType,
         textStyle
-      )(editorView.state, editorView.dispatch);
-    } else if (item.command === "orderedList") {
-      const listStyleType = item.value || "";
+      )(editorView.state, editorView.dispatch)
+    }
+    else if (item.command === 'orderedList') {
+      const listStyleType = item.value || ''
       const { ordered_list: orderedList, list_item: listItem } =
-        editorView.state.schema.nodes;
+        editorView.state.schema.nodes
       const textStyle = {
         color: richTextAttrs.value.color,
         fontsize: richTextAttrs.value.fontsize,
-      };
+      }
       toggleList(
         orderedList,
         listItem,
         listStyleType,
         textStyle
-      )(editorView.state, editorView.dispatch);
-    } else if (item.command === "clear") {
-      autoSelectAll(editorView);
-      const { $from, $to } = editorView.state.selection;
-      editorView.dispatch(editorView.state.tr.removeMark($from.pos, $to.pos));
+      )(editorView.state, editorView.dispatch)
+    }
+    else if (item.command === 'clear') {
+      autoSelectAll(editorView)
+      const { $from, $to } = editorView.state.selection
+      editorView.dispatch(editorView.state.tr.removeMark($from.pos, $to.pos))
       setListStyle(editorView, [
-        { key: "fontsize", value: "" },
-        { key: "color", value: "" },
-      ]);
-    } else if (item.command === "link") {
-      const markType = editorView.state.schema.marks.link;
-      const { from, to } = editorView.state.selection;
+        { key: 'fontsize', value: '' },
+        { key: 'color', value: '' },
+      ])
+    }
+    else if (item.command === 'link') {
+      const markType = editorView.state.schema.marks.link
+      const { from, to } = editorView.state.selection
       const result = findNodesWithSameMark(
         editorView.state.doc,
         from,
         to,
         markType
-      );
+      )
       if (result) {
         if (item.value) {
           const mark = editorView.state.schema.marks.link.create({
             href: item.value,
             title: item.value,
-          });
+          })
           addMark(editorView, mark, {
             from: result.from.pos,
             to: result.to.pos + 1,
-          });
-        } else
+          })
+        }
+        else {
           editorView.dispatch(
             editorView.state.tr.removeMark(
               result.from.pos,
               result.to.pos + 1,
               markType
             )
-          );
-      } else if (markActive(editorView.state, markType)) {
+          )
+        }
+      }
+      else if (markActive(editorView.state, markType)) {
         if (item.value) {
           const mark = editorView.state.schema.marks.link.create({
             href: item.value,
             title: item.value,
-          });
-          addMark(editorView, mark);
-        } else toggleMark(markType)(editorView.state, editorView.dispatch);
-      } else if (item.value) {
-        autoSelectAll(editorView);
+          })
+          addMark(editorView, mark)
+        }
+        else toggleMark(markType)(editorView.state, editorView.dispatch)
+      }
+      else if (item.value) {
+        autoSelectAll(editorView)
         toggleMark(markType, { href: item.value, title: item.value })(
           editorView.state,
           editorView.dispatch
-        );
+        )
       }
-    } else if (item.command === "insert" && item.value) {
-      editorView.dispatch(editorView.state.tr.insertText(item.value));
-    } else if (item.command === "replace" && item.value) {
-      replaceText(editorView, item.value);
+    }
+    else if (item.command === 'insert' && item.value) {
+      editorView.dispatch(editorView.state.tr.insertText(item.value))
+    }
+    else if (item.command === 'replace' && item.value) {
+      replaceText(editorView, item.value)
     }
   }
 
-  editorView.focus();
-  handleInput();
-  handleClick();
-};
+  editorView.focus()
+  handleInput()
+  handleClick()
+}
 
 // 鼠标抬起时，执行格式刷命令
 const handleMouseup = () => {
-  if (!textFormatPainter.value) return;
-  const { keep, ...newProps } = textFormatPainter.value;
+  if (!textFormatPainter.value) return
+  const { keep, ...newProps } = textFormatPainter.value
 
-  const actions: RichTextAction[] = [{ command: "clear" }];
+  const actions: RichTextAction[] = [{ command: 'clear' }]
   for (const key of Object.keys(newProps) as TextFormatPainterKeys[]) {
-    const command = key;
-    const value = textFormatPainter.value[key];
-    if (value === true) actions.push({ command });
-    else if (value) actions.push({ command, value });
+    const command = key
+    const value = textFormatPainter.value[key]
+    if (value === true) actions.push({ command })
+    else if (value) actions.push({ command, value })
   }
-  execCommand({ action: actions });
-  if (!keep) mainStore.setTextFormatPainter(null);
-};
+  execCommand({ action: actions })
+  if (!keep) mainStore.setTextFormatPainter(null)
+}
 
 // Prosemirror编辑器的初始化和卸载
 onMounted(() => {
@@ -387,24 +416,24 @@ onMounted(() => {
       },
       editable: () => props.editable,
     }
-  );
-  if (props.autoFocus) editorView.focus();
-});
+  )
+  if (props.autoFocus) editorView.focus()
+})
 onUnmounted(() => {
-  editorView && editorView.destroy();
-});
+  editorView && editorView.destroy()
+})
 
 const syncAttrsToStore = () => {
-  if (handleElementId.value !== props.elementId) return;
-  handleClick();
-};
+  if (handleElementId.value !== props.elementId) return
+  handleClick()
+}
 
-emitter.on(EmitterEvents.RICH_TEXT_COMMAND, execCommand);
-emitter.on(EmitterEvents.SYNC_RICH_TEXT_ATTRS_TO_STORE, syncAttrsToStore);
+emitter.on(EmitterEvents.RICH_TEXT_COMMAND, execCommand)
+emitter.on(EmitterEvents.SYNC_RICH_TEXT_ATTRS_TO_STORE, syncAttrsToStore)
 onUnmounted(() => {
-  emitter.off(EmitterEvents.RICH_TEXT_COMMAND, execCommand);
-  emitter.off(EmitterEvents.SYNC_RICH_TEXT_ATTRS_TO_STORE, syncAttrsToStore);
-});
+  emitter.off(EmitterEvents.RICH_TEXT_COMMAND, execCommand)
+  emitter.off(EmitterEvents.SYNC_RICH_TEXT_ATTRS_TO_STORE, syncAttrsToStore)
+})
 </script>
 
 <style lang="scss" scoped>
