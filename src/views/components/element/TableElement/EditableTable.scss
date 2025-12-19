@@ -15,6 +15,10 @@ table {
   word-wrap: break-word;
   user-select: none;
 
+  --themeColor: $themeColor;
+  --subThemeColor1: $themeColor;
+  --subThemeColor2: $themeColor;
+
   &.theme {
     background-color: #fff;
 

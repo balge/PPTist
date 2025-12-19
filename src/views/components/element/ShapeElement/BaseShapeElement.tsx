@@ -12,14 +12,16 @@ import PatternDefs from './PatternDefs'
 import './BaseShapeElement.scss'
 
 interface BaseShapeElementProps {
-  elementInfo: PPTShapeElement
+  elementInfo: PPTShapeElement;
 }
 
 const BaseShapeElement: React.FC<BaseShapeElementProps> = ({ elementInfo }) => {
   const { theme } = useSlidesStore()
 
   const { fill } = useElementFill(elementInfo, 'base')
-  const { outlineWidth, outlineColor, strokeDashArray } = useElementOutline(elementInfo.outline)
+  const { outlineWidth, outlineColor, strokeDashArray } = useElementOutline(
+    elementInfo.outline
+  )
   const { shadowStyle } = useElementShadow(elementInfo.shadow)
   const { flipStyle } = useElementFlip(elementInfo.flipH, elementInfo.flipV)
 
@@ -36,7 +38,7 @@ const BaseShapeElement: React.FC<BaseShapeElementProps> = ({ elementInfo }) => {
   }, [elementInfo.text, theme])
 
   return (
-    <div 
+    <div
       className="base-element-shape"
       style={{
         top: elementInfo.top + 'px',
@@ -49,7 +51,7 @@ const BaseShapeElement: React.FC<BaseShapeElementProps> = ({ elementInfo }) => {
         className="rotate-wrapper"
         style={{ transform: `rotate(${elementInfo.rotate}deg)` }}
       >
-        <div 
+        <div
           className="element-content"
           style={{
             opacity: elementInfo.opacity,
@@ -59,44 +61,51 @@ const BaseShapeElement: React.FC<BaseShapeElementProps> = ({ elementInfo }) => {
             fontFamily: text.defaultFontName,
           }}
         >
-          <svg 
-            overflow="visible" 
+          <svg
+            overflow="visible"
             width={elementInfo.width}
             height={elementInfo.height}
           >
             <defs>
               {elementInfo.pattern ? (
                 <PatternDefs
-                  id={`base-pattern-${elementInfo.id}`} 
+                  id={`base-pattern-${elementInfo.id}`}
                   src={elementInfo.pattern}
                 />
               ) : elementInfo.gradient ? (
                 <GradientDefs
-                  id={`base-gradient-${elementInfo.id}`} 
+                  id={`base-gradient-${elementInfo.id}`}
                   type={elementInfo.gradient.type}
                   colors={elementInfo.gradient.colors}
                   rotate={elementInfo.gradient.rotate}
                 />
               ) : null}
             </defs>
-            <g 
-              transform={`scale(${elementInfo.width / elementInfo.viewBox[0]}, ${elementInfo.height / elementInfo.viewBox[1]}) translate(0,0) matrix(1,0,0,1,0,0)`}
+            <g
+              transform={`scale(${
+                elementInfo.width / elementInfo.viewBox[0]
+              }, ${
+                elementInfo.height / elementInfo.viewBox[1]
+              }) translate(0,0) matrix(1,0,0,1,0,0)`}
             >
-              <path 
-                vectorEffect="non-scaling-stroke" 
-                strokeLinecap="butt" 
+              <path
+                vectorEffect="non-scaling-stroke"
+                strokeLinecap="butt"
                 strokeMiterlimit="8"
-                d={elementInfo.path} 
+                d={elementInfo.path}
                 fill={fill}
                 stroke={outlineColor}
-                strokeWidth={outlineWidth} 
-                strokeDasharray={strokeDashArray} 
+                strokeWidth={outlineWidth}
+                strokeDasharray={strokeDashArray}
               ></path>
             </g>
           </svg>
 
           <div className={clsx('shape-text', text.align)}>
-            <div className="ProseMirror-static" dangerouslySetInnerHTML={{ __html: text.content }}></div>
+            <div
+              className="ProseMirror-static"
+              dangerouslySetInnerHTML={{ __html: text.content }}
+            ></div>
           </div>
         </div>
       </div>

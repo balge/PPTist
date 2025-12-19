@@ -133,22 +133,24 @@ const ElementCreateSelection: React.FC<ElementCreateSelectionProps> = ({ onCreat
       let finalEndY = endPageY
       
       if (ctrlOrShiftKeyActive && creatingElement) {
-         const moveX = endPageX - startPageX
-         const moveY = endPageY - startPageY
-         const absX = Math.abs(moveX)
-         const absY = Math.abs(moveY)
+        const moveX = endPageX - startPageX
+        const moveY = endPageY - startPageY
+        const absX = Math.abs(moveX)
+        const absY = Math.abs(moveY)
          
-         if (creatingElement.type === 'shape') {
-            const isOpposite = (moveY > 0 && moveX < 0) || (moveY < 0 && moveX > 0)
-            if (absX > absY) {
-                finalEndY = isOpposite ? startPageY - moveX : startPageY + moveX
-            } else {
-                finalEndX = isOpposite ? startPageX - moveY : startPageX + moveY
-            }
-         } else if (creatingElement.type === 'line') {
-            if (absX > absY) finalEndY = startPageY
-            else finalEndX = startPageX
-         }
+        if (creatingElement.type === 'shape') {
+          const isOpposite = (moveY > 0 && moveX < 0) || (moveY < 0 && moveX > 0)
+          if (absX > absY) {
+            finalEndY = isOpposite ? startPageY - moveX : startPageY + moveX
+          }
+          else {
+            finalEndX = isOpposite ? startPageX - moveY : startPageX + moveY
+          }
+        }
+        else if (creatingElement.type === 'line') {
+          if (absX > absY) finalEndY = startPageY
+          else finalEndX = startPageX
+        }
       }
 
       if (
@@ -193,7 +195,9 @@ const ElementCreateSelection: React.FC<ElementCreateSelectionProps> = ({ onCreat
       className="element-create-selection"
       ref={selectionRef}
       onMouseDown={handleMouseDown}
-      onContextMenu={(e) => { e.stopPropagation(); e.preventDefault() }}
+      onContextMenu={(e) => {
+        e.stopPropagation(); e.preventDefault() 
+      }}
     >
       {start && end && (
         <div 

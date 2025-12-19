@@ -1,10 +1,10 @@
-import React, { useMemo } from "react";
-import { useMainStore } from "@/store";
-import type { PPTLineElement } from "@/types/slides";
-import { OperateLineHandlers } from "@/types/edit";
+import React, { useMemo } from 'react'
+import { useMainStore } from '@/store'
+import type { PPTLineElement } from '@/types/slides'
+import { OperateLineHandlers } from '@/types/edit'
 
-import ResizeHandler from "./ResizeHandler";
-import "./LineElementOperate.scss";
+import ResizeHandler from './ResizeHandler'
+import './LineElementOperate.scss'
 
 interface LineElementOperateProps {
   elementInfo: PPTLineElement;
@@ -28,10 +28,10 @@ const LineElementOperate: React.FC<LineElementOperateProps> = ({
   handlerVisible,
   dragLineElement,
 }) => {
-  const { canvasScale } = useMainStore();
+  const { canvasScale } = useMainStore()
 
-  const svgWidth = Math.max(elementInfo.start[0], elementInfo.end[0]);
-  const svgHeight = Math.max(elementInfo.start[1], elementInfo.end[1]);
+  const svgWidth = Math.max(elementInfo.start[0], elementInfo.end[0])
+  const svgHeight = Math.max(elementInfo.start[1], elementInfo.end[1])
 
   /**
    * 计算线条操作手柄的位置与类型
@@ -43,51 +43,52 @@ const LineElementOperate: React.FC<LineElementOperateProps> = ({
       {
         handler: OperateLineHandlers.START,
         style: {
-          left: elementInfo.start[0] * canvasScale + "px",
-          top: elementInfo.start[1] * canvasScale + "px",
+          left: elementInfo.start[0] * canvasScale + 'px',
+          top: elementInfo.start[1] * canvasScale + 'px',
         },
       },
       {
         handler: OperateLineHandlers.END,
         style: {
-          left: elementInfo.end[0] * canvasScale + "px",
-          top: elementInfo.end[1] * canvasScale + "px",
+          left: elementInfo.end[0] * canvasScale + 'px',
+          top: elementInfo.end[1] * canvasScale + 'px',
         },
       },
-    ];
+    ]
 
     if (elementInfo.curve || elementInfo.broken || elementInfo.broken2) {
       const ctrlHandler = (elementInfo.curve ||
         elementInfo.broken ||
-        elementInfo.broken2) as [number, number];
+        elementInfo.broken2) as [number, number]
 
       handlers.push({
         handler: OperateLineHandlers.C,
         style: {
-          left: ctrlHandler[0] * canvasScale + "px",
-          top: ctrlHandler[1] * canvasScale + "px",
+          left: ctrlHandler[0] * canvasScale + 'px',
+          top: ctrlHandler[1] * canvasScale + 'px',
         },
-      });
-    } else if (elementInfo.cubic) {
-      const [ctrlHandler1, ctrlHandler2] = elementInfo.cubic;
+      })
+    }
+    else if (elementInfo.cubic) {
+      const [ctrlHandler1, ctrlHandler2] = elementInfo.cubic
       handlers.push({
         handler: OperateLineHandlers.C1,
         style: {
-          left: ctrlHandler1[0] * canvasScale + "px",
-          top: ctrlHandler1[1] * canvasScale + "px",
+          left: ctrlHandler1[0] * canvasScale + 'px',
+          top: ctrlHandler1[1] * canvasScale + 'px',
         },
-      });
+      })
       handlers.push({
         handler: OperateLineHandlers.C2,
         style: {
-          left: ctrlHandler2[0] * canvasScale + "px",
-          top: ctrlHandler2[1] * canvasScale + "px",
+          left: ctrlHandler2[0] * canvasScale + 'px',
+          top: ctrlHandler2[1] * canvasScale + 'px',
         },
-      });
+      })
     }
 
-    return handlers;
-  }, [elementInfo, canvasScale]);
+    return handlers
+  }, [elementInfo, canvasScale])
 
   return (
     <div className="line-element-operate">
@@ -100,8 +101,8 @@ const LineElementOperate: React.FC<LineElementOperateProps> = ({
               type={point.handler} // Reuse ResizeHandler with line specific type if compatible or ignore TS for now
               style={point.style}
               onMouseDown={(e) => {
-                e.stopPropagation();
-                dragLineElement?.(e, elementInfo, point.handler);
+                e.stopPropagation()
+                dragLineElement?.(e, elementInfo, point.handler)
               }}
             />
           ))}
@@ -158,7 +159,7 @@ const LineElementOperate: React.FC<LineElementOperateProps> = ({
         </>
       )}
     </div>
-  );
-};
+  )
+}
 
-export default LineElementOperate;
+export default LineElementOperate

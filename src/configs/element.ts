@@ -7,4 +7,4 @@ export const MIN_SIZE: { [key: string]: number } = {
   video: 250,
   audio: 20,
   latex: 20,
-};
+}

@@ -17,7 +17,8 @@ const AlignmentLine: React.FC<Props> = ({ type, axis, length, canvasScale }) => 
     style.top = axis.y * canvasScale
     style.width = 1
     style.height = length * canvasScale
-  } else {
+  }
+  else {
     style.left = axis.x * canvasScale
     style.top = axis.y * canvasScale
     style.width = length * canvasScale

@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react'
 import { useMainStore } from '@/store'
-import { PPTVideoElement, PPTLatexElement, PPTAudioElement, PPTChartElement } from '@/types/slides'
-import { OperateResizeHandlers } from '@/types/edit'
+import type { PPTVideoElement, PPTLatexElement, PPTAudioElement, PPTChartElement } from '@/types/slides'
+import type { OperateResizeHandlers } from '@/types/edit'
 import useCommonOperate from '../hooks/useCommonOperate'
 
 import RotateHandler from './RotateHandler'

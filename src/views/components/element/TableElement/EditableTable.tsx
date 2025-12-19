@@ -1,5 +1,11 @@
-import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
-import { debounce, isEqual } from 'lodash'
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  useRef,
+  useCallback,
+} from 'react'
+import { debounce } from 'lodash'
 import { nanoid } from 'nanoid'
 import clsx from 'clsx'
 import { useMainStore } from '@/store'
@@ -9,23 +15,25 @@ import { KEYS } from '@/configs/hotkey'
 import { getTextStyle, formatText } from './utils'
 import useHideCells from './useHideCells'
 import useSubThemeColor from './useSubThemeColor'
+import { createRoot } from 'react-dom/client'
+import Contextmenu from '@/components/Contextmenu'
 
 import CustomTextarea from './CustomTextarea'
 import './EditableTable.scss'
 
 interface EditableTableProps {
-  data: TableCell[][]
-  width: number
-  cellMinHeight: number
-  colWidths: number[]
-  outline: PPTElementOutline
-  theme?: TableTheme
-  editable?: boolean
-  onChange: (data: TableCell[][]) => void
-  onChangeColWidths: (widths: number[]) => void
-  onChangeSelectedCells: (cells: string[]) => void
-  onMouseDown?: (e: React.MouseEvent) => void
-  contextmenus: (el: HTMLElement) => ContextmenuItem[]
+  data: TableCell[][];
+  width: number;
+  cellMinHeight: number;
+  colWidths: number[];
+  outline: PPTElementOutline;
+  theme?: TableTheme;
+  editable?: boolean;
+  onChange: (data: TableCell[][]) => void;
+  onChangeColWidths: (widths: number[]) => void;
+  onChangeSelectedCells: (cells: string[]) => void;
+  onMouseDown?: (e: React.MouseEvent) => void;
+  contextmenus?: (el: HTMLElement) => ContextmenuItem[];
 }
 
 const EditableTable: React.FC<EditableTableProps> = ({
@@ -43,7 +51,7 @@ const EditableTable: React.FC<EditableTableProps> = ({
   contextmenus,
 }) => {
   const { canvasScale, setSelectedTableCells } = useMainStore()
-  
+
   const [isStartSelect, setIsStartSelect] = useState(false)
   const [startCell, setStartCell] = useState<number[]>([])
   const [endCell, setEndCell] = useState<number[]>([])
@@ -51,10 +59,13 @@ const EditableTable: React.FC<EditableTableProps> = ({
 
   // Calculate colSizeList from props
   useEffect(() => {
-    setColSizeList(colWidths.map(item => item * width))
+    setColSizeList(colWidths.map((item) => item * width))
   }, [colWidths, width])
 
-  const totalWidth = useMemo(() => colSizeList.reduce((a, b) => a + b, 0), [colSizeList])
+  const totalWidth = useMemo(
+    () => colSizeList.reduce((a, b) => a + b, 0),
+    [colSizeList]
+  )
   const { hideCells } = useHideCells(tableCells)
   const { subThemeColor } = useSubThemeColor(theme)
 
@@ -103,7 +114,9 @@ const EditableTable: React.FC<EditableTableProps> = ({
     for (let i = 0; i < tableCells.length; i++) {
       const rowCells = tableCells[i]
       for (let j = 0; j < rowCells.length; j++) {
-        if (i >= minX && i <= maxX && j >= minY && j <= maxY) selected.push(`${i}_${j}`)
+        if (i >= minX && i <= maxX && j >= minY && j <= maxY) {
+          selected.push(`${i}_${j}`)
+        }
       }
     }
     return selected
@@ -129,7 +142,11 @@ const EditableTable: React.FC<EditableTableProps> = ({
     }
   }, [handleMouseup])
 
-  const handleCellMousedown = (e: React.MouseEvent, rowIndex: number, colIndex: number) => {
+  const handleCellMousedown = (
+    e: React.MouseEvent,
+    rowIndex: number,
+    colIndex: number
+  ) => {
     if (e.button === 0) {
       setEndCell([])
       setIsStartSelect(true)
@@ -142,7 +159,8 @@ const EditableTable: React.FC<EditableTableProps> = ({
     setEndCell([rowIndex, colIndex])
   }
 
-  const isHideCell = (rowIndex: number, colIndex: number) => hideCells.includes(`${rowIndex}_${colIndex}`)
+  const isHideCell = (rowIndex: number, colIndex: number) =>
+    hideCells.includes(`${rowIndex}_${colIndex}`)
 
   // Table operations (insert, delete, merge, split) - implemented similarly to Vue version
   // but since state is lifted up (data prop), we need to compute new data and call onChange
@@ -163,7 +181,7 @@ const EditableTable: React.FC<EditableTableProps> = ({
   }
 
   const insertCol = (colIndex: number) => {
-    const _tableCells = tableCells.map(item => {
+    const _tableCells = tableCells.map((item) => {
       const cell = {
         colspan: 1,
         rowspan: 1,
@@ -176,7 +194,7 @@ const EditableTable: React.FC<EditableTableProps> = ({
     })
     const newColSizeList = [...colSizeList]
     newColSizeList.splice(colIndex, 0, 100)
-    
+
     onChange(_tableCells)
     onChangeColWidths(newColSizeList)
   }
@@ -188,7 +206,7 @@ const EditableTable: React.FC<EditableTableProps> = ({
     for (let i = 0; i < targetCells.length; i++) {
       if (isHideCell(rowIndex, i)) hideCellsPos.push(i)
     }
-    
+
     for (const pos of hideCellsPos) {
       for (let i = rowIndex; i >= 0; i--) {
         if (!isHideCell(i, pos)) {
@@ -218,7 +236,7 @@ const EditableTable: React.FC<EditableTableProps> = ({
       }
     }
 
-    const newTableCells = _tableCells.map(item => {
+    const newTableCells = _tableCells.map((item) => {
       item.splice(colIndex, 1)
       return item
     })
@@ -239,7 +257,7 @@ const EditableTable: React.FC<EditableTableProps> = ({
     const maxY = Math.max(startY, endY)
 
     const _tableCells: TableCell[][] = JSON.parse(JSON.stringify(tableCells))
-    
+
     _tableCells[minX][minY].rowspan = maxX - minX + 1
     _tableCells[minX][minY].colspan = maxY - minY + 1
 
@@ -277,26 +295,294 @@ const EditableTable: React.FC<EditableTableProps> = ({
     setEndCell([maxRow, maxCol])
   }
 
+  /**
+   * 清空选中单元格文字
+   */
+  const clearSelectedCellText = () => {
+    const _tableCells: TableCell[][] = JSON.parse(JSON.stringify(tableCells))
+    for (let i = 0; i < _tableCells.length; i++) {
+      for (let j = 0; j < _tableCells[i].length; j++) {
+        if (selectedCells.includes(`${i}_${j}`)) {
+          _tableCells[i][j].text = ''
+        }
+      }
+    }
+    onChange(_tableCells)
+  }
+
+  /**
+   * 聚焦激活单元格文本框
+   */
+  const focusActiveCell = () => {
+    requestAnimationFrame(() => {
+      const textRef = document.querySelector(
+        '.cell-text.active'
+      ) as HTMLDivElement | null
+      if (textRef) textRef.focus()
+    })
+  }
+
+  /**
+   * Tab 移动焦点，如末尾自动新增一行
+   */
+  const tabActiveCell = () => {
+    const getNextCell = (i: number, j: number): [number, number] | null => {
+      if (!tableCells[i]) return null
+      if (!tableCells[i][j]) return getNextCell(i + 1, 0)
+      if (isHideCell(i, j)) return getNextCell(i, j + 1)
+      return [i, j]
+    }
+
+    setEndCell([])
+
+    const nextRow = startCell[0]
+    const nextCol = startCell[1] + 1
+
+    const nextCell = getNextCell(nextRow, nextCol)
+    if (!nextCell) {
+      insertRow(nextRow + 1)
+      setStartCell([nextRow + 1, 0])
+    }
+    else setStartCell(nextCell)
+
+    focusActiveCell()
+  }
+
+  /**
+   * 计算光标位置
+   */
+  const getCaretPosition = (element: HTMLDivElement) => {
+    const selection = window.getSelection()
+    if (selection && selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0)
+
+      const preCaretRange = range.cloneRange()
+      preCaretRange.selectNodeContents(element)
+
+      preCaretRange.setEnd(range.startContainer, range.startOffset)
+      const start = preCaretRange.toString().length
+      preCaretRange.setEnd(range.endContainer, range.endOffset)
+      const end = preCaretRange.toString().length
+
+      const len = element.textContent?.length || 0
+
+      return { start, end, len }
+    }
+    return null
+  }
+
+  /**
+   * 移动激活单元格（上下左右）
+   */
+  const moveActiveCell = (dir: 'UP' | 'DOWN' | 'LEFT' | 'RIGHT') => {
+    const rowIndex = +selectedCells[0].split('_')[0]
+    const colIndex = +selectedCells[0].split('_')[1]
+
+    const rowLen = tableCells.length
+    const colLen = tableCells[0].length
+
+    const getEffectivePos = (pos: [number, number]): [number, number] => {
+      if (
+        pos[0] < 0 ||
+        pos[1] < 0 ||
+        pos[0] > rowLen - 1 ||
+        pos[1] > colLen - 1
+      ) {
+        return [0, 0]
+      }
+
+      const p = `${pos[0]}_${pos[1]}`
+      if (!hideCells.includes(p)) return pos
+
+      if (dir === 'UP') {
+        return getEffectivePos([pos[0], pos[1] - 1])
+      }
+      if (dir === 'DOWN') {
+        return getEffectivePos([pos[0], pos[1] - 1])
+      }
+      if (dir === 'LEFT') {
+        return getEffectivePos([pos[0] - 1, pos[1]])
+      }
+      if (dir === 'RIGHT') {
+        return getEffectivePos([pos[0] - 1, pos[1]])
+      }
+
+      return [0, 0]
+    }
+
+    if (dir === 'UP') {
+      const _rowIndex = rowIndex - 1
+      if (_rowIndex < 0) return
+      setEndCell([])
+      setStartCell(getEffectivePos([_rowIndex, colIndex]))
+    }
+    else if (dir === 'DOWN') {
+      const _rowIndex = rowIndex + 1
+      if (_rowIndex > rowLen - 1) return
+      setEndCell([])
+      setStartCell(getEffectivePos([_rowIndex, colIndex]))
+    }
+    else if (dir === 'LEFT') {
+      const _colIndex = colIndex - 1
+      if (_colIndex < 0) return
+      setEndCell([])
+      setStartCell(getEffectivePos([rowIndex, _colIndex]))
+    }
+    else if (dir === 'RIGHT') {
+      const _colIndex = colIndex + 1
+      if (_colIndex > colLen - 1) return
+      setEndCell([])
+      setStartCell(getEffectivePos([rowIndex, _colIndex]))
+    }
+
+    focusActiveCell()
+  }
+
+  /**
+   * 获取有效单元格（去除被合并位置）
+   */
+  const getEffectiveTableCells = () => {
+    const effectiveTableCells: TableCell[][] = []
+    for (let i = 0; i < tableCells.length; i++) {
+      const rowCells = tableCells[i]
+      const _rowCells: TableCell[] = []
+      for (let j = 0; j < rowCells.length; j++) {
+        if (!isHideCell(i, j)) _rowCells.push(rowCells[j])
+      }
+      if (_rowCells.length) effectiveTableCells.push(_rowCells)
+    }
+    return effectiveTableCells
+  }
+
+  /**
+   * 检查是否可删除行列
+   */
+  const checkCanDeleteRowOrCol = () => {
+    const effectiveTableCells = getEffectiveTableCells()
+    const canDeleteRow = effectiveTableCells.length > 1
+    const canDeleteCol = effectiveTableCells[0].length > 1
+    return { canDeleteRow, canDeleteCol }
+  }
+
+  /**
+   * 检查是否可合并或拆分
+   */
+  const checkCanMergeOrSplit = (rowIndex: number, colIndex: number) => {
+    const isMultiSelected = selectedCells.length > 1
+    const targetCell = tableCells[rowIndex][colIndex]
+    const canMerge = isMultiSelected
+    const canSplit =
+      !isMultiSelected && (targetCell.rowspan > 1 || targetCell.colspan > 1)
+    return { canMerge, canSplit }
+  }
+
+  /**
+   * 打开右键菜单
+   */
+  const openContextMenu = (
+    event: React.MouseEvent,
+    el: HTMLElement,
+    menus: ContextmenuItem[]
+  ) => {
+    event.preventDefault()
+    event.stopPropagation()
+
+    const existingContainer = document.getElementById(
+      'global-contextmenu-container'
+    )
+    if (existingContainer) {
+      document.body.removeChild(existingContainer)
+    }
+
+    const container = document.createElement('div')
+    container.id = 'global-contextmenu-container'
+    document.body.appendChild(container)
+
+    const root = createRoot(container)
+    const removeContextmenu = () => {
+      setTimeout(() => {
+        root.unmount()
+        if (document.body.contains(container)) {
+          document.body.removeChild(container)
+        }
+        el.classList.remove('contextmenu-active')
+        document.body.removeEventListener('scroll', removeContextmenu)
+        window.removeEventListener('resize', removeContextmenu)
+      }, 0)
+    }
+
+    root.render(
+      <Contextmenu
+        axis={{ x: event.clientX, y: event.clientY }}
+        el={el}
+        menus={menus}
+        removeContextmenu={removeContextmenu}
+      />
+    )
+
+    el.classList.add('contextmenu-active')
+    document.body.addEventListener('scroll', removeContextmenu)
+    window.addEventListener('resize', removeContextmenu)
+  }
+
   // Handle keyboard events (move, delete, tab, insert)
   useEffect(() => {
     const keydownListener = (e: KeyboardEvent) => {
       if (!editable || !selectedCells.length) return
 
       const key = e.key.toUpperCase()
-      // Implementation omitted for brevity, but logic is same as Vue:
-      // check key, preventDefault, call corresponding function
-      // For now, let's support basic delete
-      if (key === KEYS.DELETE) {
-        // clear text
-        const _tableCells: TableCell[][] = JSON.parse(JSON.stringify(tableCells))
-        for (let i = 0; i < _tableCells.length; i++) {
-            for (let j = 0; j < _tableCells[i].length; j++) {
-            if (selectedCells.includes(`${i}_${j}`)) {
-                _tableCells[i][j].text = ''
-            }
-            }
+      if (selectedCells.length < 2) {
+        if (key === KEYS.TAB) {
+          e.preventDefault()
+          tabActiveCell()
         }
-        onChange(_tableCells)
+        else if (e.ctrlKey && key === KEYS.UP) {
+          e.preventDefault()
+          const rowIndex = +selectedCells[0].split('_')[0]
+          insertRow(rowIndex)
+        }
+        else if (e.ctrlKey && key === KEYS.DOWN) {
+          e.preventDefault()
+          const rowIndex = +selectedCells[0].split('_')[0]
+          insertRow(rowIndex + 1)
+        }
+        else if (e.ctrlKey && key === KEYS.LEFT) {
+          e.preventDefault()
+          const colIndex = +selectedCells[0].split('_')[1]
+          insertCol(colIndex)
+        }
+        else if (e.ctrlKey && key === KEYS.RIGHT) {
+          e.preventDefault()
+          const colIndex = +selectedCells[0].split('_')[1]
+          insertCol(colIndex + 1)
+        }
+        else if (key === KEYS.UP) {
+          const range = getCaretPosition(e.target as HTMLDivElement)
+          if (range && range.start === range.end && range.start === 0) {
+            moveActiveCell('UP')
+          }
+        }
+        else if (key === KEYS.DOWN) {
+          const range = getCaretPosition(e.target as HTMLDivElement)
+          if (range && range.start === range.end && range.start === range.len) {
+            moveActiveCell('DOWN')
+          }
+        }
+        else if (key === KEYS.LEFT) {
+          const range = getCaretPosition(e.target as HTMLDivElement)
+          if (range && range.start === range.end && range.start === 0) {
+            moveActiveCell('LEFT')
+          }
+        }
+        else if (key === KEYS.RIGHT) {
+          const range = getCaretPosition(e.target as HTMLDivElement)
+          if (range && range.start === range.end && range.start === range.len) {
+            moveActiveCell('RIGHT')
+          }
+        }
+      }
+      else if (key === KEYS.DELETE) {
+        clearSelectedCellText()
       }
     }
     document.addEventListener('keydown', keydownListener)
@@ -309,7 +595,7 @@ const EditableTable: React.FC<EditableTableProps> = ({
     e.stopPropagation()
     setStartCell([])
     setEndCell([])
-    
+
     let isMouseDown = true
     const originWidth = colSizeList[colIndex]
     const startPageX = e.pageX
@@ -317,10 +603,13 @@ const EditableTable: React.FC<EditableTableProps> = ({
 
     const onMouseMove = (e: MouseEvent) => {
       if (!isMouseDown) return
-      
+
       const moveX = (e.pageX - startPageX) / canvasScale
-      const width = originWidth + moveX < minWidth ? minWidth : Math.round(originWidth + moveX)
-      
+      const width =
+        originWidth + moveX < minWidth
+          ? minWidth
+          : Math.round(originWidth + moveX)
+
       const newColSizeList = [...colSizeList]
       newColSizeList[colIndex] = width
       setColSizeList(newColSizeList)
@@ -330,131 +619,181 @@ const EditableTable: React.FC<EditableTableProps> = ({
       isMouseDown = false
       document.removeEventListener('mousemove', onMouseMove)
       document.removeEventListener('mouseup', onMouseUp)
-      
-      // Need to use latest colSizeList, but it's in state. 
-      // The state setColSizeList updates asynchronously.
-      // But here we are inside the closure. 
-      // A ref for colSizeList would be better for access in event handlers, 
-      // but since we update state on move, we might need a way to get final value.
-      // Actually, we can just calculate final width from event:
-      // const moveX = (e.pageX - startPageX) / canvasScale
-      // const width = originWidth + moveX < minWidth ? minWidth : Math.round(originWidth + moveX)
-      // We should emit the final list.
-      // But for simplicity, we rely on the state update being reflected eventually or use a ref to track current drag width.
-      
-      // Better approach: calculate final width here and emit
-      // (Skipping perfect implementation for brevity, relying on state update might be slightly delayed but acceptable for mouseup)
-      // Actually, onChangeColWidths(colSizeList) inside onMouseUp will use stale closure colSizeList.
-      // So we should calculate it again.
-      // Re-calculating:
-      // const moveX = (e.pageX - startPageX) / canvasScale
-      // const width = originWidth + moveX < minWidth ? minWidth : Math.round(originWidth + moveX)
-      // const finalColSizeList = [...colSizeList]
-      // finalColSizeList[colIndex] = width
-      // onChangeColWidths(finalColSizeList)
-      
-      // Let's just emit the current state in a useEffect or similar? No, event handler is better.
-      // For now, let's assume the user drags and releases, and we trigger update.
-      // Since we updated state during drag, we need to pass that state up.
-      // We can use a ref to store the latest colSizeList during drag.
+      onChangeColWidths(colSizeListRef.current)
     }
 
     document.addEventListener('mousemove', onMouseMove)
     document.addEventListener('mouseup', onMouseUp)
   }
-  
+
   // Ref to track latest colSizeList for drag end
   const colSizeListRef = useRef(colSizeList)
-  useEffect(() => { colSizeListRef.current = colSizeList }, [colSizeList])
-  
+  useEffect(() => {
+    colSizeListRef.current = colSizeList
+  }, [colSizeList])
+
   // Re-bind mouseup to use ref
   // (Actually, the above implementation of onMouseUp is inside the closure of handleMousedownColHandler,
   // so it captures the initial colSizeList. We need to use the ref inside onMouseMove/onMouseUp)
 
+  /**
+   * 文本输入（防抖更新）
+   */
   const handleInput = (value: string, rowIndex: number, colIndex: number) => {
     const _tableCells: TableCell[][] = JSON.parse(JSON.stringify(tableCells))
     _tableCells[rowIndex][colIndex].text = value
     onChange(_tableCells)
   }
+  const handleInputDebounced = useMemo(
+    () => debounce(handleInput, 300, { trailing: true }),
+    [tableCells, onChange]
+  )
 
-  const insertExcelData = (data: string[][], rowIndex: number, colIndex: number) => {
+  /**
+   * 自动填充表格尺寸并插入 Excel 数据
+   */
+  const insertExcelData = (
+    data: string[][],
+    rowIndex: number,
+    colIndex: number
+  ) => {
     const maxRow = data.length
     const maxCol = data[0].length
 
     let fillRowCount = 0
     let fillColCount = 0
-    
-    // Fill table logic ... (omitted, similar to Vue)
-    // For now, just update cells
-    
-    const _tableCells: TableCell[][] = JSON.parse(JSON.stringify(tableCells))
-    // Expand table if needed (simplified: assuming table is big enough or ignoring expansion for now)
-    
-    for (let i = 0; i < maxRow; i++) {
-        for (let j = 0; j < maxCol; j++) {
-            if (_tableCells[rowIndex + i] && _tableCells[rowIndex + i][colIndex + j]) {
-                _tableCells[rowIndex + i][colIndex + j].text = data[i][j]
-            }
-        }
+    if (rowIndex + maxRow > tableCells.length) {
+      fillRowCount = rowIndex + maxRow - tableCells.length
     }
-    onChange(_tableCells)
+    if (colIndex + maxCol > tableCells[0].length) {
+      fillColCount = colIndex + maxCol - tableCells[0].length
+    }
+    if (fillRowCount || fillColCount) {
+      let _tableCells: TableCell[][] = JSON.parse(JSON.stringify(tableCells))
+      const defaultCell = { colspan: 1, rowspan: 1, text: '' }
+
+      if (fillRowCount) {
+        const newRows: TableCell[][] = []
+        for (let i = 0; i < fillRowCount; i++) {
+          const rowCells: TableCell[] = []
+          for (let j = 0; j < _tableCells[0].length; j++) {
+            rowCells.push({
+              ...defaultCell,
+              id: nanoid(10),
+            } as TableCell)
+          }
+          newRows.push(rowCells)
+        }
+        _tableCells = [..._tableCells, ...newRows]
+      }
+      if (fillColCount) {
+        _tableCells = _tableCells.map((item) => {
+          const cells: TableCell[] = []
+          for (let i = 0; i < fillColCount; i++) {
+            const cell = {
+              ...defaultCell,
+              id: nanoid(10),
+            } as TableCell
+            cells.push(cell)
+          }
+          return [...item, ...cells]
+        })
+        const newColSizeList = [
+          ...colSizeList,
+          ...new Array(fillColCount).fill(100),
+        ]
+        setColSizeList(newColSizeList)
+        onChangeColWidths(newColSizeList)
+      }
+      onChange(_tableCells)
+    }
+
+    requestAnimationFrame(() => {
+      const _tableCells: TableCell[][] = JSON.parse(JSON.stringify(tableCells))
+      for (let i = 0; i < maxRow; i++) {
+        for (let j = 0; j < maxCol; j++) {
+          if (
+            _tableCells[rowIndex + i] &&
+            _tableCells[rowIndex + i][colIndex + j]
+          ) {
+            _tableCells[rowIndex + i][colIndex + j].text = data[i][j]
+          }
+        }
+      }
+      onChange(_tableCells)
+    })
   }
 
-  // Inject context menu items (helpers)
-  // We need to expose these helpers to the contextmenus function prop, 
-  // or the parent component needs to implement them.
-  // The Vue version passed contextmenus as a prop, and the prop function returned items.
-  // But the items' handlers need access to insertRow, deleteRow etc.
-  // In Vue, the parent passed a function that RETURNED the menu items, and the parent component 
-  // didn't seem to implement insertRow etc. Wait, let's check index.vue again.
-  // In index.vue: contextmenus prop is passed to EditableTable.
-  // But EditableTable.vue DEFINES contextmenus function which returns items with handlers!
-  // And index.vue passes `contextmenus` prop to EditableTable? No, index.vue passes `contextmenus` prop to `element-content` div?
-  // Let's re-read index.vue.
-  // index.vue: <EditableTable ... /> (no contextmenus prop passed!)
-  // index.vue: <div class="element-content" v-contextmenu="contextmenus">
-  // So the context menu is on the wrapper div in index.vue, NOT in EditableTable.vue?
-  // Wait, EditableTable.vue ALSO has v-contextmenu on td?
-  // EditableTable.vue: `v-contextmenu="(el: HTMLElement) => contextmenus(el)"`
-  // And EditableTable.vue DEFINES `const contextmenus = (el) => ...`
-  // So EditableTable handles its own context menu logic.
-  // The prop `contextmenus` in EditableTable.vue seems to be unused or I misread?
-  // props definition: `contextmenus: () => ContextmenuItem[] | null`
-  // But the template uses the LOCAL `contextmenus` function.
-  // So we should implement contextmenus logic INSIDE EditableTable.tsx and attach it to cells.
-  // But wait, the parent `index.tsx` passes `contextmenus` prop (global context menu).
-  // We need to merge or override.
-  // In React, we usually use a ContextMenu component or hook.
-  // For now, let's assume we pass the cell context menu handlers back to the parent or handle it locally.
-  // Since we are migrating, let's keep logic in EditableTable.
-  
-  // We need to export/expose these handlers or attach context menu events.
-  // In React, we can attach `onContextMenu` to cells.
-
-  const handleCellContextMenu = (e: React.MouseEvent, rowIndex: number, colIndex: number) => {
-    e.preventDefault()
-    e.stopPropagation()
-    
-    // Select the cell if not selected
+  const handleCellContextMenu = (
+    e: React.MouseEvent,
+    rowIndex: number,
+    colIndex: number
+  ) => {
+    const el = e.currentTarget as HTMLElement
     if (!selectedCells.includes(`${rowIndex}_${colIndex}`)) {
-        setStartCell([rowIndex, colIndex])
-        setEndCell([])
+      setStartCell([rowIndex, colIndex])
+      setEndCell([])
     }
-    
-    // We need to invoke the global context menu with specific items
-    // This requires a way to set the global context menu items.
-    // In Vue, `v-contextmenu` directive did this.
-    // In React, we might need a store action or callback.
-    // Assuming `contextmenus` prop from parent is a way to GET items, but here we want to SET items.
-    // Let's assume we call a store action or similar.
-    // But wait, the previous `useContextmenu` implementation isn't fully clear here.
-    // Let's skip the exact context menu implementation details and just mark TODO,
-    // as it requires a global context menu system update.
-    console.log('Context menu triggered on cell', rowIndex, colIndex)
+
+    const { canMerge, canSplit } = checkCanMergeOrSplit(rowIndex, colIndex)
+    const { canDeleteRow, canDeleteCol } = checkCanDeleteRowOrCol()
+    const localMenus: ContextmenuItem[] = [
+      {
+        text: '插入列',
+        children: [
+          { text: '到左侧', handler: () => insertCol(colIndex) },
+          { text: '到右侧', handler: () => insertCol(colIndex + 1) },
+        ],
+      },
+      {
+        text: '插入行',
+        children: [
+          { text: '到上方', handler: () => insertRow(rowIndex) },
+          { text: '到下方', handler: () => insertRow(rowIndex + 1) },
+        ],
+      },
+      {
+        text: '删除列',
+        disable: !canDeleteCol,
+        handler: () => deleteCol(colIndex),
+      },
+      {
+        text: '删除行',
+        disable: !canDeleteRow,
+        handler: () => deleteRow(rowIndex),
+      },
+      { divider: true },
+      {
+        text: '合并单元格',
+        disable: !canMerge,
+        handler: mergeCells,
+      },
+      {
+        text: '取消合并单元格',
+        disable: !canSplit,
+        handler: () => splitCells(rowIndex, colIndex),
+      },
+      { divider: true },
+      {
+        text: '选中当前列',
+        handler: () => selectCol(colIndex),
+      },
+      {
+        text: '选中当前行',
+        handler: () => selectRow(rowIndex),
+      },
+      {
+        text: '选中全部单元格',
+        handler: selectAll,
+      },
+    ]
+    const externalMenus = contextmenus ? contextmenus(el) || [] : []
+    const menus = [...localMenus, ...(externalMenus || [])]
+    if (menus.length) openContextMenu(e, el, menus)
   }
 
   return (
-    <div 
+    <div
       className="editable-table"
       style={{ width: totalWidth + 'px' }}
       onMouseDown={onMouseDown}
@@ -462,7 +801,7 @@ const EditableTable: React.FC<EditableTableProps> = ({
       {editable && (
         <div className="handler">
           {dragLinePosition.map((pos, index) => (
-            <div 
+            <div
               key={index}
               className="drag-line"
               style={{ left: pos + 'px' }}
@@ -473,7 +812,7 @@ const EditableTable: React.FC<EditableTableProps> = ({
       )}
       <table
         className={clsx({
-          'theme': theme,
+          theme: theme,
           'row-header': theme?.rowHeader,
           'row-footer': theme?.rowFooter,
           'col-header': theme?.colHeader,
@@ -491,16 +830,18 @@ const EditableTable: React.FC<EditableTableProps> = ({
             <tr key={rowIndex} style={{ height: cellMinHeight + 'px' }}>
               {rowCells.map((cell, colIndex) => {
                 if (hideCells.includes(`${rowIndex}_${colIndex}`)) return null
-                
-                const isSelected = selectedCells.includes(`${rowIndex}_${colIndex}`) && selectedCells.length > 1
+
+                const isSelected =
+                  selectedCells.includes(`${rowIndex}_${colIndex}`) &&
+                  selectedCells.length > 1
                 const isActive = activedCell === `${rowIndex}_${colIndex}`
 
                 return (
-                  <td 
+                  <td
                     key={cell.id}
                     className={clsx('cell', {
-                      'selected': isSelected,
-                      'active': isActive,
+                      selected: isSelected,
+                      active: isActive,
                     })}
                     style={{
                       borderStyle: outline.style,
@@ -511,23 +852,35 @@ const EditableTable: React.FC<EditableTableProps> = ({
                     rowSpan={cell.rowspan}
                     colSpan={cell.colspan}
                     data-cell-index={`${rowIndex}_${colIndex}`}
-                    onMouseDown={(e) => handleCellMousedown(e, rowIndex, colIndex)}
-                    onMouseEnter={() => handleCellMouseenter(rowIndex, colIndex)}
-                    onContextMenu={(e) => handleCellContextMenu(e, rowIndex, colIndex)}
+                    onMouseDown={(e) =>
+                      handleCellMousedown(e, rowIndex, colIndex)
+                    }
+                    onMouseEnter={() =>
+                      handleCellMouseenter(rowIndex, colIndex)
+                    }
+                    onContextMenu={(e) =>
+                      handleCellContextMenu(e, rowIndex, colIndex)
+                    }
                   >
                     {isActive ? (
                       <CustomTextarea
                         className={clsx('cell-text', { active: true })}
-                        style={{ minHeight: (cellMinHeight - 4) + 'px' }}
+                        style={{ minHeight: cellMinHeight - 4 + 'px' }}
                         value={cell.text}
-                        onUpdateValue={(value) => handleInput(value, rowIndex, colIndex)}
-                        onInsertExcelData={(data) => insertExcelData(data, rowIndex, colIndex)}
+                        onUpdateValue={(value) =>
+                          handleInputDebounced(value, rowIndex, colIndex)
+                        }
+                        onInsertExcelData={(data) =>
+                          insertExcelData(data, rowIndex, colIndex)
+                        }
                       />
                     ) : (
-                      <div 
-                        className="cell-text" 
-                        style={{ minHeight: (cellMinHeight - 4) + 'px' }} 
-                        dangerouslySetInnerHTML={{ __html: formatText(cell.text) }} 
+                      <div
+                        className="cell-text"
+                        style={{ minHeight: cellMinHeight - 4 + 'px' }}
+                        dangerouslySetInnerHTML={{
+                          __html: formatText(cell.text),
+                        }}
                       />
                     )}
                   </td>

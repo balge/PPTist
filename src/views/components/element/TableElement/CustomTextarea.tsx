@@ -1,22 +1,26 @@
 import React, { useRef, useState, useEffect } from 'react'
-import { pasteCustomClipboardString, pasteExcelClipboardString, pasteHTMLTableClipboardString } from '@/utils/clipboard'
+import {
+  pasteCustomClipboardString,
+  pasteExcelClipboardString,
+  pasteHTMLTableClipboardString,
+} from '@/utils/clipboard'
 import './CustomTextarea.scss'
 import clsx from 'clsx'
 
 interface CustomTextareaProps {
-  value: string
-  className?: string
-  style?: React.CSSProperties
-  onUpdateValue: (value: string) => void
-  onInsertExcelData: (data: string[][]) => void
+  value: string;
+  className?: string;
+  style?: React.CSSProperties;
+  onUpdateValue: (value: string) => void;
+  onInsertExcelData: (data: string[][]) => void;
 }
 
-const CustomTextarea: React.FC<CustomTextareaProps> = ({ 
-  value, 
+const CustomTextarea: React.FC<CustomTextareaProps> = ({
+  value,
   className,
   style,
-  onUpdateValue, 
-  onInsertExcelData 
+  onUpdateValue,
+  onInsertExcelData,
 }) => {
   const textareaRef = useRef<HTMLDivElement>(null)
   const isFocus = useRef(false)
@@ -40,8 +44,8 @@ const CustomTextarea: React.FC<CustomTextareaProps> = ({
     isFocus.current = true
 
     if (!textareaRef.current) return
-    
-    // React's onPaste might be sufficient, but original code attached it manually. 
+
+    // React's onPaste might be sufficient, but original code attached it manually.
     // Let's use React's onPaste prop for better integration.
   }
 
@@ -53,28 +57,32 @@ const CustomTextarea: React.FC<CustomTextareaProps> = ({
 
     if (clipboardDataFirstItem && clipboardDataFirstItem.kind === 'string') {
       if (clipboardDataFirstItem.type === 'text/plain') {
-        clipboardDataFirstItem.getAsString(text => {
+        clipboardDataFirstItem.getAsString((text) => {
           const clipboardData = pasteCustomClipboardString(text)
           if (typeof clipboardData === 'object') return
-   
+
           const excelData = pasteExcelClipboardString(text)
           if (excelData) {
             onInsertExcelData(excelData)
-            if (textareaRef.current) textareaRef.current.innerHTML = excelData[0][0]
+            if (textareaRef.current) {
+              textareaRef.current.innerHTML = excelData[0][0]
+            }
             return
           }
-  
+
           document.execCommand('insertText', false, text)
         })
       }
       else if (clipboardDataFirstItem.type === 'text/html') {
-        clipboardDataFirstItem.getAsString(html => {
+        clipboardDataFirstItem.getAsString((html) => {
           const htmlData = pasteHTMLTableClipboardString(html)
           if (htmlData) {
             onInsertExcelData(htmlData)
-            if (textareaRef.current) textareaRef.current.innerHTML = htmlData[0][0]
+            if (textareaRef.current) {
+              textareaRef.current.innerHTML = htmlData[0][0]
+            }
           }
-        }) 
+        })
       }
     }
   }
@@ -84,8 +92,8 @@ const CustomTextarea: React.FC<CustomTextareaProps> = ({
   }
 
   return (
-    <div 
-      className={clsx("custom-textarea", className)}
+    <div
+      className={clsx('custom-textarea', className)}
       style={style}
       ref={textareaRef}
       contentEditable={true}

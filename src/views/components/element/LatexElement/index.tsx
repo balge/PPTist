@@ -1,56 +1,80 @@
-import React from 'react'
+import React, { useRef } from 'react'
 import type { PPTLatexElement } from '@/types/slides'
 import emitter, { EmitterEvents } from '@/utils/emitter'
-import { ElementProps } from '../types'
 import './index.scss'
+import type { ContextmenuItem } from '@/components/Contextmenu/types'
+import useContextMenu from '@/hooks/useContextMenu'
 
-const LatexElement: React.FC<ElementProps> = ({ elementInfo, selectElement, contextmenus }) => {
-  const element = elementInfo as PPTLatexElement
+export interface ElementProps {
+  elementInfo: PPTLatexElement;
+  selectElement: (
+    e: MouseEvent | TouchEvent,
+    element: PPTLatexElement,
+    canMove?: boolean
+  ) => void;
+  contextmenus: () => ContextmenuItem[] | null;
+}
+
+const LatexElement: React.FC<ElementProps> = ({
+  elementInfo,
+  selectElement,
+  contextmenus,
+}) => {
+  const contentRef = useRef<HTMLDivElement>(null)
 
   const handleSelectElement = (e: React.MouseEvent | React.TouchEvent) => {
     e.stopPropagation()
-    selectElement?.(e, element)
+    selectElement?.(e.nativeEvent, elementInfo)
   }
 
   const openLatexEditor = () => {
     emitter.emit(EmitterEvents.OPEN_LATEX_EDITOR)
   }
 
+  /**
+   * 绑定右键菜单到内容容器
+   */
+  useContextMenu(contentRef, () => contextmenus?.() || [])
+
   return (
-    <div 
+    <div
       className="editable-element-latex"
       style={{
-        top: element.top + 'px',
-        left: element.left + 'px',
-        width: element.width + 'px',
-        height: element.height + 'px',
+        top: elementInfo.top + 'px',
+        left: elementInfo.left + 'px',
+        width: elementInfo.width + 'px',
+        height: elementInfo.height + 'px',
       }}
     >
       <div
         className="rotate-wrapper"
-        style={{ transform: `rotate(${element.rotate}deg)` }}
+        style={{ transform: `rotate(${elementInfo.rotate}deg)` }}
       >
-        <div 
-          className="element-content" 
-          // v-contextmenu="contextmenus"
+        <div
+          ref={contentRef}
+          className="element-content"
           onMouseDown={handleSelectElement}
           onTouchStart={handleSelectElement}
           onDoubleClick={openLatexEditor}
         >
-          <svg 
-            overflow="visible" 
-            width={element.width}
-            height={element.height}
-            stroke={element.color} 
-            strokeWidth={element.strokeWidth} 
-            fill="none" 
+          <svg
+            overflow="visible"
+            width={elementInfo.width}
+            height={elementInfo.height}
+            stroke={elementInfo.color}
+            strokeWidth={elementInfo.strokeWidth}
+            fill="none"
             strokeLinecap="round"
             strokeLinejoin="round"
           >
-            <g 
-              transform={`scale(${element.width / element.viewBox[0]}, ${element.height / element.viewBox[1]}) translate(0,0) matrix(1,0,0,1,0,0)`}
+            <g
+              transform={`scale(${
+                elementInfo.width / elementInfo.viewBox[0]
+              }, ${
+                elementInfo.height / elementInfo.viewBox[1]
+              }) translate(0,0) matrix(1,0,0,1,0,0)`}
             >
-              <path d={element.path}></path>
+              <path d={elementInfo.path}></path>
             </g>
           </svg>
         </div>

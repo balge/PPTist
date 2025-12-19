@@ -1,6 +1,6 @@
-import { nanoid } from "nanoid";
-import { useMainStore, useSlidesStore } from "@/store";
-import { getImageSize } from "@/utils/image";
+import { nanoid } from 'nanoid'
+import { useMainStore, useSlidesStore } from '@/store'
+import { getImageSize } from '@/utils/image'
 import type {
   PPTLineElement,
   PPTElement,
@@ -10,12 +10,12 @@ import type {
   ChartType,
   PPTVideoElement,
   PPTAudioElement,
-} from "@/types/slides";
-import type { CreateCustomShapeData } from "@/types/edit";
-import { type ShapePoolItem, SHAPE_PATH_FORMULAS } from "@/configs/shapes";
-import type { LinePoolItem } from "@/configs/lines";
-import { CHART_DEFAULT_DATA } from "@/configs/chart";
-import useHistorySnapshot from "@/hooks/useHistorySnapshot";
+} from '@/types/slides'
+import type { CreateCustomShapeData } from '@/types/edit'
+import { type ShapePoolItem, SHAPE_PATH_FORMULAS } from '@/configs/shapes'
+import type { LinePoolItem } from '@/configs/lines'
+import { CHART_DEFAULT_DATA } from '@/configs/chart'
+import useHistorySnapshot from '@/hooks/useHistorySnapshot'
 
 interface CommonElementPosition {
   top: number;
@@ -42,26 +42,26 @@ export default () => {
     setCreatingElement,
     setActiveElementIdList,
     setEditorareaFocus,
-  } = useMainStore();
-  const { theme, viewportRatio, viewportSize, addElement } = useSlidesStore();
+  } = useMainStore()
+  const { theme, viewportRatio, viewportSize, addElement } = useSlidesStore()
 
-  const { addHistorySnapshot } = useHistorySnapshot();
+  const { addHistorySnapshot } = useHistorySnapshot()
 
   // 创建（插入）一个元素并将其设置为被选中元素
   const createElement = (element: PPTElement, callback?: () => void) => {
-    addElement(element);
-    setActiveElementIdList([element.id]);
+    addElement(element)
+    setActiveElementIdList([element.id])
 
-    if (creatingElement) setCreatingElement(null);
+    if (creatingElement) setCreatingElement(null)
 
     setTimeout(() => {
-      setEditorareaFocus(true);
-    }, 0);
+      setEditorareaFocus(true)
+    }, 0)
 
-    if (callback) callback();
+    if (callback) callback()
 
-    addHistorySnapshot();
-  };
+    addHistorySnapshot()
+  }
 
   /**
    * 创建图片元素
@@ -69,18 +69,19 @@ export default () => {
    */
   const createImageElement = (src: string) => {
     getImageSize(src).then(({ width, height }) => {
-      const scale = height / width;
+      const scale = height / width
 
       if (scale < viewportRatio && width > viewportSize) {
-        width = viewportSize;
-        height = width * scale;
-      } else if (height > viewportSize * viewportRatio) {
-        height = viewportSize * viewportRatio;
-        width = height / scale;
+        width = viewportSize
+        height = width * scale
+      }
+      else if (height > viewportSize * viewportRatio) {
+        height = viewportSize * viewportRatio
+        width = height / scale
       }
 
       createElement({
-        type: "image",
+        type: 'image',
         id: nanoid(10),
         src,
         width,
@@ -89,9 +90,9 @@ export default () => {
         top: (viewportSize * viewportRatio - height) / 2,
         fixedRatio: true,
         rotate: 0,
-      });
-    });
-  };
+      })
+    })
+  }
 
   /**
    * 创建图表元素
@@ -99,7 +100,7 @@ export default () => {
    */
   const createChartElement = (type: ChartType) => {
     createElement({
-      type: "chart",
+      type: 'chart',
       id: nanoid(10),
       chartType: type,
       left: 300,
@@ -110,8 +111,8 @@ export default () => {
       themeColors: theme.themeColors,
       textColor: theme.fontColor,
       data: CHART_DEFAULT_DATA[type],
-    });
-  };
+    })
+  }
 
   /**
    * 创建表格元素
@@ -122,32 +123,32 @@ export default () => {
     const style: TableCellStyle = {
       fontname: theme.fontName,
       color: theme.fontColor,
-    };
-    const data: TableCell[][] = [];
+    }
+    const data: TableCell[][] = []
     for (let i = 0; i < row; i++) {
-      const rowCells: TableCell[] = [];
+      const rowCells: TableCell[] = []
       for (let j = 0; j < col; j++) {
         rowCells.push({
           id: nanoid(10),
           colspan: 1,
           rowspan: 1,
-          text: "",
+          text: '',
           style,
-        });
+        })
       }
-      data.push(rowCells);
+      data.push(rowCells)
     }
 
-    const DEFAULT_CELL_WIDTH = 100;
-    const DEFAULT_CELL_HEIGHT = 36;
+    const DEFAULT_CELL_WIDTH = 100
+    const DEFAULT_CELL_HEIGHT = 36
 
-    const colWidths: number[] = new Array(col).fill(1 / col);
+    const colWidths: number[] = new Array(col).fill(1 / col)
 
-    const width = col * DEFAULT_CELL_WIDTH;
-    const height = row * DEFAULT_CELL_HEIGHT;
+    const width = col * DEFAULT_CELL_WIDTH
+    const height = row * DEFAULT_CELL_HEIGHT
 
     createElement({
-      type: "table",
+      type: 'table',
       id: nanoid(10),
       width,
       height,
@@ -158,8 +159,8 @@ export default () => {
       top: (viewportSize * viewportRatio - height) / 2,
       outline: {
         width: 2,
-        style: "solid",
-        color: "#eeece1",
+        style: 'solid',
+        color: '#eeece1',
       },
       theme: {
         color: theme.themeColors[0],
@@ -169,8 +170,8 @@ export default () => {
         colFooter: false,
       },
       cellMinHeight: 36,
-    });
-  };
+    })
+  }
 
   /**
    * 创建文本元素
@@ -181,14 +182,14 @@ export default () => {
     position: CommonElementPosition,
     data?: CreateTextData
   ) => {
-    const { left, top, width, height } = position;
-    const content = data?.content || "";
-    const vertical = data?.vertical || false;
+    const { left, top, width, height } = position
+    const content = data?.content || ''
+    const vertical = data?.vertical || false
 
-    const id = nanoid(10);
+    const id = nanoid(10)
     createElement(
       {
-        type: "text",
+        type: 'text',
         id,
         left,
         top,
@@ -204,12 +205,12 @@ export default () => {
         setTimeout(() => {
           const editorRef: HTMLElement | null = document.querySelector(
             `#editable-element-${id} .ProseMirror`
-          );
-          if (editorRef) editorRef.focus();
-        }, 0);
+          )
+          if (editorRef) editorRef.focus()
+        }, 0)
       }
-    );
-  };
+    )
+  }
 
   /**
    * 创建形状元素
@@ -221,9 +222,9 @@ export default () => {
     data: ShapePoolItem,
     supplement: Partial<PPTShapeElement> = {}
   ) => {
-    const { left, top, width, height } = position;
+    const { left, top, width, height } = position
     const newElement: PPTShapeElement = {
-      type: "shape",
+      type: 'shape',
       id: nanoid(10),
       left,
       top,
@@ -235,34 +236,35 @@ export default () => {
       fixedRatio: false,
       rotate: 0,
       ...supplement,
-    };
-    if (data.withborder) newElement.outline = theme.outline;
-    if (data.special) newElement.special = true;
+    }
+    if (data.withborder) newElement.outline = theme.outline
+    if (data.special) newElement.special = true
     if (data.pathFormula) {
-      newElement.pathFormula = data.pathFormula;
-      newElement.viewBox = [width, height];
+      newElement.pathFormula = data.pathFormula
+      newElement.viewBox = [width, height]
 
-      const pathFormula = SHAPE_PATH_FORMULAS[data.pathFormula];
-      if ("editable" in pathFormula && pathFormula.editable) {
+      const pathFormula = SHAPE_PATH_FORMULAS[data.pathFormula]
+      if ('editable' in pathFormula && pathFormula.editable) {
         newElement.path = pathFormula.formula(
           width,
           height,
           pathFormula.defaultValue!
-        );
-        newElement.keypoints = pathFormula.defaultValue;
-      } else newElement.path = pathFormula.formula(width, height);
+        )
+        newElement.keypoints = pathFormula.defaultValue
+      }
+      else newElement.path = pathFormula.formula(width, height)
     }
-    createElement(newElement);
-  };
+    createElement(newElement)
+  }
 
   /**
    * 创建自定义形状元素
    * @param data 自定义形状信息
    */
   const createCustomShapeElement = (data: CreateCustomShapeData) => {
-    const { start, viewBox, path, fill, outline } = data;
+    const { start, viewBox, path, fill, outline } = data
     createElement({
-      type: "shape",
+      type: 'shape',
       id: nanoid(10),
       left: start[0],
       top: start[1],
@@ -274,8 +276,8 @@ export default () => {
       rotate: 0,
       outline,
       fixedRatio: false,
-    });
-  };
+    })
+  }
 
   /**
    * 创建线条元素
@@ -286,10 +288,10 @@ export default () => {
     position: LineElementPosition,
     data: LinePoolItem
   ) => {
-    const { left, top, start, end } = position;
+    const { left, top, start, end } = position
 
     const newElement: PPTLineElement = {
-      type: "line",
+      type: 'line',
       id: nanoid(10),
       left,
       top,
@@ -299,20 +301,24 @@ export default () => {
       color: theme.themeColors[0],
       style: data.style,
       width: 2,
-    };
-    if (data.isBroken)
-      newElement.broken = [(start[0] + end[0]) / 2, (start[1] + end[1]) / 2];
-    if (data.isBroken2)
-      newElement.broken2 = [(start[0] + end[0]) / 2, (start[1] + end[1]) / 2];
-    if (data.isCurve)
-      newElement.curve = [(start[0] + end[0]) / 2, (start[1] + end[1]) / 2];
-    if (data.isCubic)
+    }
+    if (data.isBroken) {
+      newElement.broken = [(start[0] + end[0]) / 2, (start[1] + end[1]) / 2]
+    }
+    if (data.isBroken2) {
+      newElement.broken2 = [(start[0] + end[0]) / 2, (start[1] + end[1]) / 2]
+    }
+    if (data.isCurve) {
+      newElement.curve = [(start[0] + end[0]) / 2, (start[1] + end[1]) / 2]
+    }
+    if (data.isCubic) {
       newElement.cubic = [
         [(start[0] + end[0]) / 2, (start[1] + end[1]) / 2],
         [(start[0] + end[0]) / 2, (start[1] + end[1]) / 2],
-      ];
-    createElement(newElement);
-  };
+      ]
+    }
+    createElement(newElement)
+  }
 
   /**
    * 创建LaTeX元素
@@ -325,7 +331,7 @@ export default () => {
     h: number;
   }) => {
     createElement({
-      type: "latex",
+      type: 'latex',
       id: nanoid(10),
       width: data.w,
       height: data.h,
@@ -338,8 +344,8 @@ export default () => {
       strokeWidth: 2,
       viewBox: [data.w, data.h],
       fixedRatio: true,
-    });
-  };
+    })
+  }
 
   /**
    * 创建视频元素
@@ -347,7 +353,7 @@ export default () => {
    */
   const createVideoElement = (src: string, ext?: string) => {
     const newElement: PPTVideoElement = {
-      type: "video",
+      type: 'video',
       id: nanoid(10),
       width: 500,
       height: 300,
@@ -356,10 +362,10 @@ export default () => {
       top: (viewportSize * viewportRatio - 300) / 2,
       src,
       autoplay: false,
-    };
-    if (ext) newElement.ext = ext;
-    createElement(newElement);
-  };
+    }
+    if (ext) newElement.ext = ext
+    createElement(newElement)
+  }
 
   /**
    * 创建音频元素
@@ -367,7 +373,7 @@ export default () => {
    */
   const createAudioElement = (src: string, ext?: string) => {
     const newElement: PPTAudioElement = {
-      type: "audio",
+      type: 'audio',
       id: nanoid(10),
       width: 50,
       height: 50,
@@ -379,10 +385,10 @@ export default () => {
       fixedRatio: true,
       color: theme.themeColors[0],
       src,
-    };
-    if (ext) newElement.ext = ext;
-    createElement(newElement);
-  };
+    }
+    if (ext) newElement.ext = ext
+    createElement(newElement)
+  }
 
   return {
     createElement,
@@ -396,5 +402,5 @@ export default () => {
     createLatexElement,
     createVideoElement,
     createAudioElement,
-  };
-};
+  }
+}

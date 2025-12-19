@@ -1,19 +1,36 @@
-import React, { useMemo } from 'react'
+import React, { useMemo, useRef } from 'react'
 import type { PPTLineElement, LinePoint } from '@/types/slides'
 import { getLineElementPath } from '@/utils/element'
 import useElementShadow from '@/views/components/element/hooks/useElementShadow'
 
 import LinePointMarker from './LinePointMarker'
-import { ElementProps } from '../types'
 import './index.scss'
+import type { ContextmenuItem } from '@/components/Contextmenu/types'
+import useContextMenu from '@/hooks/useContextMenu'
 
-const LineElement: React.FC<ElementProps> = ({ elementInfo, selectElement, contextmenus }) => {
+export interface ElementProps {
+  elementInfo: PPTLineElement;
+  selectElement: (
+    e: MouseEvent | TouchEvent,
+    element: PPTLineElement,
+    canMove?: boolean
+  ) => void;
+  contextmenus: () => ContextmenuItem[] | null;
+}
+
+const LineElement: React.FC<ElementProps> = ({
+  elementInfo,
+  selectElement,
+  contextmenus,
+}) => {
+  const contentRef = useRef<SVGPathElement>(null)
+
   const element = elementInfo as PPTLineElement
   const { shadowStyle } = useElementShadow(element.shadow)
 
   const handleSelectElement = (e: React.MouseEvent | React.TouchEvent) => {
     e.stopPropagation()
-    selectElement?.(e, element)
+    selectElement?.(e.nativeEvent, element)
   }
 
   const svgWidth = useMemo(() => {
@@ -28,8 +45,16 @@ const LineElement: React.FC<ElementProps> = ({ elementInfo, selectElement, conte
 
   const lineDashArray = useMemo(() => {
     const size = element.width
-    if (element.style === 'dashed') return size <= 8 ? `${size * 5} ${size * 2.5}` : `${size * 5} ${size * 1.5}`
-    if (element.style === 'dotted') return size <= 8 ? `${size * 1.8} ${size * 1.6}` : `${size * 1.5} ${size * 1.2}`
+    if (element.style === 'dashed') {
+      return size <= 8
+        ? `${size * 5} ${size * 2.5}`
+        : `${size * 5} ${size * 1.5}`
+    }
+    if (element.style === 'dotted') {
+      return size <= 8
+        ? `${size * 1.8} ${size * 1.6}`
+        : `${size * 1.5} ${size * 1.2}`
+    }
     return '0 0'
   }, [element.width, element.style])
 
@@ -40,27 +65,26 @@ const LineElement: React.FC<ElementProps> = ({ elementInfo, selectElement, conte
   const startPoint = element.points[0] as Exclude<LinePoint, ''> | undefined
   const endPoint = element.points[1] as Exclude<LinePoint, ''> | undefined
 
+  /**
+   * 绑定右键菜单到内容容器
+   */
+  useContextMenu(contentRef, () => contextmenus?.() || [])
+
   return (
-    <div 
+    <div
       className="editable-element-shape"
       style={{
         top: element.top + 'px',
         left: element.left + 'px',
-        width: svgWidth + 'px',
-        height: svgHeight + 'px',
       }}
     >
-      <div 
-        className="element-content" 
+      <div
+        className="element-content"
         style={{ filter: shadowStyle ? `drop-shadow(${shadowStyle})` : '' }}
         onMouseDown={handleSelectElement}
         onTouchStart={handleSelectElement}
       >
-        <svg
-          overflow="visible" 
-          width={svgWidth}
-          height={svgHeight}
-        >
+        <svg overflow="visible" width={svgWidth} height={svgHeight}>
           <defs>
             {startPoint && (
               <LinePointMarker
@@ -83,21 +107,23 @@ const LineElement: React.FC<ElementProps> = ({ elementInfo, selectElement, conte
           </defs>
           <path
             className="line-point"
-            d={path} 
-            stroke={element.color} 
-            strokeWidth={element.width} 
+            d={path}
+            stroke={element.color}
+            strokeWidth={element.width}
             strokeDasharray={lineDashArray}
-            fill="none" 
-            markerStart={startPoint ? `url(#${element.id}-${startPoint}-start)` : ''}
+            fill="none"
+            markerStart={
+              startPoint ? `url(#${element.id}-${startPoint}-start)` : ''
+            }
             markerEnd={endPoint ? `url(#${element.id}-${endPoint}-end)` : ''}
           ></path>
           <path
             className="line-path"
-            d={path} 
-            stroke="transparent" 
-            strokeWidth="20" 
-            fill="none" 
-            // v-contextmenu="contextmenus"
+            d={path}
+            stroke="transparent"
+            strokeWidth="20"
+            fill="none"
+            ref={contentRef}
           ></path>
         </svg>
       </div>

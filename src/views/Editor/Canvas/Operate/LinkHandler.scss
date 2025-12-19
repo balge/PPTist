@@ -1,6 +1,7 @@
 @import '@/assets/styles/variable.scss';
 @import '@/assets/styles/mixin.scss';
 
+
 .link-handler {
   height: 30px;
   position: absolute;
@@ -12,7 +13,6 @@
   display: flex;
   align-items: center;
   color: $themeColor;
-  z-index: 101;
 }
 .link {
   max-width: 300px;

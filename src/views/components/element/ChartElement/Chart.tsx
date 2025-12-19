@@ -1,7 +1,13 @@
 import React, { useEffect, useRef, useMemo, useCallback } from 'react'
 import tinycolor from 'tinycolor2'
 import * as echarts from 'echarts/core'
-import { BarChart, LineChart, PieChart, ScatterChart, RadarChart } from 'echarts/charts'
+import {
+  BarChart,
+  LineChart,
+  PieChart,
+  ScatterChart,
+  RadarChart,
+} from 'echarts/charts'
 import { LegendComponent } from 'echarts/components'
 import { SVGRenderer } from 'echarts/renderers'
 import type { ChartData, ChartOptions, ChartType } from '@/types/slides'
@@ -19,14 +25,14 @@ echarts.use([
 ])
 
 interface ChartProps {
-  width: number
-  height: number
-  type: ChartType
-  data: ChartData
-  themeColors: string[]
-  textColor?: string
-  lineColor?: string
-  options?: ChartOptions
+  width: number;
+  height: number;
+  type: ChartType;
+  data: ChartData;
+  themeColors: string[];
+  textColor?: string;
+  lineColor?: string;
+  options?: ChartOptions;
 }
 
 const Chart: React.FC<ChartProps> = ({
@@ -45,10 +51,16 @@ const Chart: React.FC<ChartProps> = ({
   const themeColors = useMemo(() => {
     let colors: string[] = []
     if (propsThemeColors.length >= 10) colors = propsThemeColors
-    else if (propsThemeColors.length === 1) colors = tinycolor(propsThemeColors[0]).analogous(10).map(color => color.toRgbString())
+    else if (propsThemeColors.length === 1) {
+      colors = tinycolor(propsThemeColors[0])
+        .analogous(10)
+        .map((color) => color.toRgbString())
+    }
     else {
       const len = propsThemeColors.length
-      const supplement = tinycolor(propsThemeColors[len - 1]).analogous(10 + 1 - len).map(color => color.toRgbString())
+      const supplement = tinycolor(propsThemeColors[len - 1])
+        .analogous(10 + 1 - len)
+        .map((color) => color.toRgbString())
       colors = [...propsThemeColors.slice(0, len - 1), ...supplement]
     }
     return colors
@@ -71,7 +83,9 @@ const Chart: React.FC<ChartProps> = ({
   useEffect(() => {
     if (!chartRef.current) return
 
-    chartInstance.current = echarts.init(chartRef.current, null, { renderer: 'svg' })
+    chartInstance.current = echarts.init(chartRef.current, null, {
+      renderer: 'svg',
+    })
     updateOption()
 
     const resizeListener = () => chartInstance.current?.resize()
@@ -89,9 +103,7 @@ const Chart: React.FC<ChartProps> = ({
     updateOption()
   }, [updateOption])
 
-  return (
-    <div className="chart-container" ref={chartRef}></div>
-  )
+  return <div className="chart" ref={chartRef}></div>
 }
 
 export default Chart

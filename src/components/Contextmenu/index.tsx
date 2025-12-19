@@ -4,22 +4,25 @@ import type { ContextmenuItem, Axis } from './types'
 import './index.scss'
 
 interface MenuContentProps {
-  menus: ContextmenuItem[]
-  handleClickMenuItem: (item: ContextmenuItem) => void
+  menus: ContextmenuItem[];
+  handleClickMenuItem: (item: ContextmenuItem) => void;
 }
 
-const MenuContent: React.FC<MenuContentProps> = ({ menus, handleClickMenuItem }) => {
+const MenuContent: React.FC<MenuContentProps> = ({
+  menus,
+  handleClickMenuItem,
+}) => {
   return (
     <ul className="menu-content">
       {menus.map((menu, index) => {
         if (menu.hide) return null
-        
+
         return (
           <li
             key={menu.text || index}
             className={clsx('menu-item', {
-              'divider': menu.divider,
-              'disable': menu.disable,
+              divider: menu.divider,
+              disable: menu.disable,
             })}
             onClick={(e) => {
               e.stopPropagation()
@@ -34,7 +37,8 @@ const MenuContent: React.FC<MenuContentProps> = ({ menus, handleClickMenuItem })
                 })}
               >
                 <span className="text">{menu.text}</span>
-                {menu.subText && (!menu.children || menu.children.length === 0) && (
+                {menu.subText &&
+                  (!menu.children || menu.children.length === 0) && (
                   <span className="sub-text">{menu.subText}</span>
                 )}
 
@@ -56,13 +60,18 @@ const MenuContent: React.FC<MenuContentProps> = ({ menus, handleClickMenuItem })
 }
 
 interface ContextmenuProps {
-  axis: Axis
-  el?: HTMLElement
-  menus: ContextmenuItem[]
-  removeContextmenu: () => void
+  axis: Axis;
+  el?: HTMLElement | SVGPathElement;
+  menus: ContextmenuItem[];
+  removeContextmenu: () => void;
 }
 
-const Contextmenu: React.FC<ContextmenuProps> = ({ axis, el, menus, removeContextmenu }) => {
+const Contextmenu: React.FC<ContextmenuProps> = ({
+  axis,
+  el,
+  menus,
+  removeContextmenu,
+}) => {
   const style = useMemo(() => {
     const MENU_WIDTH = 180
     const MENU_HEIGHT = 30
@@ -70,11 +79,14 @@ const Contextmenu: React.FC<ContextmenuProps> = ({ axis, el, menus, removeContex
     const PADDING = 5
 
     const { x, y } = axis
-    const menuCount = menus.filter(menu => !(menu.divider || menu.hide)).length
-    const dividerCount = menus.filter(menu => menu.divider).length
+    const menuCount = menus.filter(
+      (menu) => !(menu.divider || menu.hide)
+    ).length
+    const dividerCount = menus.filter((menu) => menu.divider).length
 
     const menuWidth = MENU_WIDTH
-    const menuHeight = menuCount * MENU_HEIGHT + dividerCount * DIVIDER_HEIGHT + PADDING * 2
+    const menuHeight =
+      menuCount * MENU_HEIGHT + dividerCount * DIVIDER_HEIGHT + PADDING * 2
 
     const screenWidth = document.body.clientWidth
     const screenHeight = document.body.clientHeight
@@ -94,7 +106,7 @@ const Contextmenu: React.FC<ContextmenuProps> = ({ axis, el, menus, removeContex
 
   return (
     <>
-      <div 
+      <div
         className="contextmenu-mask"
         onContextMenu={(e) => {
           e.preventDefault()
@@ -105,7 +117,7 @@ const Contextmenu: React.FC<ContextmenuProps> = ({ axis, el, menus, removeContex
         }}
       />
 
-      <div 
+      <div
         className="contextmenu"
         style={{
           left: style.left,
@@ -113,10 +125,7 @@ const Contextmenu: React.FC<ContextmenuProps> = ({ axis, el, menus, removeContex
         }}
         onContextMenu={(e) => e.preventDefault()}
       >
-        <MenuContent 
-          menus={menus}
-          handleClickMenuItem={handleClickMenuItem} 
-        />
+        <MenuContent menus={menus} handleClickMenuItem={handleClickMenuItem} />
       </div>
     </>
   )

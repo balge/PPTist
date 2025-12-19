@@ -1,283 +1,317 @@
-import React, {
-  useRef,
-  useMemo,
-  useState,
-  useCallback,
-  useEffect,
-} from "react";
-import { throttle } from "lodash";
-import { useMainStore, useSlidesStore, useKeyboardStore } from "@/store";
-import type { PPTElement } from "@/types/slides";
-import { ElementTypes } from "@/types/slides";
-import { KEYS } from "@/configs/hotkey";
+import React, { useMemo, useRef, useState, useEffect } from 'react'
+import { throttle } from 'lodash'
+import { useMainStore, useSlidesStore, useKeyboardStore } from '@/store'
+import type { PPTElement } from '@/types/slides'
+import { KEYS } from '@/configs/hotkey'
 import type {
   AlignmentLineProps,
   OperateResizeHandlers,
   OperateLineHandlers,
-} from "@/types/edit";
-import useCreateElement from "@/hooks/useCreateElement";
-import useSlideHandler from "@/hooks/useSlideHandler";
+} from '@/types/edit'
+import useCreateElement from '@/hooks/useCreateElement'
+import useSlideHandler from '@/hooks/useSlideHandler'
+import useContextMenu from '@/hooks/useContextMenu'
+import useClickOutside from '@/hooks/useClickOutside'
+import { removeAllRanges } from '@/utils/selection'
 
-import useScaleElement from "./hooks/useScaleElement";
-import useSelectElement from "./hooks/useSelectElement";
-import useRotateElement from "./hooks/useRotateElement";
-import useDragLineElement from "./hooks/useDragLineElement";
-import useDragElement from "./hooks/useDragElement";
-import useMoveShapeKeypoint from "./hooks/useMoveShapeKeypoint";
-import useViewportSize from "./hooks/useViewportSize";
-import useMouseSelection from "./hooks/useMouseSelection";
-import useDrop from "./hooks/useDrop";
-import useInsertFromCreateSelection from "./hooks/useInsertFromCreateSelection";
-import useContextMenu from "@/hooks/useContextMenu";
+import useViewportSize from './hooks/useViewportSize'
+import useMouseSelection from './hooks/useMouseSelection'
+import useDrop from './hooks/useDrop'
+import useInsertFromCreateSelection from './hooks/useInsertFromCreateSelection'
+import useDragElement from './hooks/useDragElement'
+import useSelectElement from './hooks/useSelectElement'
+import useRotateElement from './hooks/useRotateElement'
+import useScaleElement from './hooks/useScaleElement'
+import useDragLineElement from './hooks/useDragLineElement'
+import useMoveShapeKeypoint from './hooks/useMoveShapeKeypoint'
 
-import ViewportBackground from "./ViewportBackground";
-import GridLines from "./GridLines";
-import EditableElement from "./EditableElement";
-import Operate from "./Operate";
-import MouseSelection from "./MouseSelection";
-import ElementCreateSelection from "./ElementCreateSelection";
-import ShapeCreateCanvas from "./ShapeCreateCanvas";
-import MultiSelectOperate from "./Operate/MultiSelectOperate";
-import AlignmentLine from "./AlignmentLine";
-import LinkDialog from "./LinkDialog";
-import "./index.scss";
+import ViewportBackground from './ViewportBackground'
+import Operate from './Operate'
+import AlignmentLine from './AlignmentLine'
+import ElementCreateSelection from './ElementCreateSelection'
+import ShapeCreateCanvas from './ShapeCreateCanvas'
+import MouseSelection from './MouseSelection'
+import MultiSelectOperate from './Operate/MultiSelectOperate'
+import EditableElement from './EditableElement'
+import LinkDialog from './LinkDialog'
+import './index.scss'
 
+/**
+ * Canvas 组件：承载编辑区域渲染、元素选择与操作、视口缩放与拖拽等核心交互
+ */
 const Canvas: React.FC = () => {
   const {
     canvasScale,
     activeElementIdList,
     handleElementId,
     activeGroupElementId,
+    hiddenElementIdList,
     creatingElement,
     creatingCustomShape,
-    gridLinesState,
-    setCanvasPercentage,
-    setHandleElementId,
-  } = useMainStore();
-  const { currentSlide } = useSlidesStore();
-  const { spaceKeyState } = useKeyboardStore();
-  const { createCustomShapeElement, createTextElement } = useCreateElement();
-  const { updateSlideIndex } = useSlideHandler();
+    setActiveElementIdList,
+    setActiveGroupElementId,
+    editorAreaFocus,
+    textFormatPainter,
+    setEditorareaFocus,
+    setTextFormatPainter,
+  } = useMainStore()
+  const { currentSlide } = useSlidesStore()
+  const { spaceKeyState } = useKeyboardStore()
+  const { createCustomShapeElement, createTextElement } = useCreateElement()
+  const { updateSlideIndex } = useSlideHandler()
 
-  const containerRef = useRef<HTMLDivElement>(null);
-  const viewportRef = useRef<HTMLDivElement>(null);
-  const [linkDialogVisible, setLinkDialogVisible] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null)
+  const viewportRef = useRef<HTMLDivElement>(null)
+  const [linkDialogVisible, setLinkDialogVisible] = useState(false)
 
-  const elementList = currentSlide?.elements || [];
+  const elementList = currentSlide?.elements || []
+
+  const [alignmentLines, setAlignmentLines] = useState<AlignmentLineProps[]>(
+    []
+  )
 
   const setElementList = (
     newListOrUpdater: PPTElement[] | ((prev: PPTElement[]) => PPTElement[])
   ) => {
-    const current = useSlidesStore.getState().currentSlide;
-    if (!current) return;
-
-    let newList: PPTElement[];
-    if (typeof newListOrUpdater === "function") {
-      newList = newListOrUpdater(current.elements);
-    } else {
-      newList = newListOrUpdater;
-    }
-    useSlidesStore.getState().updateSlide({ elements: newList });
-  };
-
-  const [alignmentLines, setAlignmentLines] = useState<AlignmentLineProps[]>(
-    []
-  );
+    const current = useSlidesStore.getState().currentSlide
+    if (!current) return
+    const next =
+      typeof newListOrUpdater === 'function'
+        ? newListOrUpdater(current.elements)
+        : newListOrUpdater
+    useSlidesStore.getState().updateSlide({ elements: next })
+  }
 
   const { dragElement } = useDragElement(
     elementList,
     setElementList,
     setAlignmentLines
-  );
-  const { selectElement } = useSelectElement(elementList, dragElement);
+  )
   const { scaleElement, scaleMultiElement } = useScaleElement(
     elementList,
     setElementList,
     setAlignmentLines
-  );
+  )
   const { rotateElement } = useRotateElement(
     elementList,
     setElementList,
     viewportRef
-  );
-  const { dragLineElement } = useDragLineElement(elementList, setElementList);
+  )
+  const { dragLineElement } = useDragLineElement(elementList, setElementList)
   const { moveShapeKeypoint } = useMoveShapeKeypoint(
     elementList,
     setElementList
-  );
-  const { viewportStyles, dragViewport } = useViewportSize(containerRef);
+  )
+
+  const { viewportStyles, dragViewport } = useViewportSize(containerRef)
   const { selectionState, mouseSelectionVisible, updateMouseSelection } =
-    useMouseSelection(elementList, containerRef);
+    useMouseSelection(elementList, viewportRef)
 
-  useDrop(containerRef);
-
+  useDrop(containerRef)
   const { insertElementFromCreateSelection } =
-    useInsertFromCreateSelection(viewportRef);
+    useInsertFromCreateSelection(viewportRef)
+  const { selectElement } = useSelectElement(elementList, dragElement)
 
   const menus = useMemo(
     () => [
       {
-        text: "粘贴",
-        subText: "Ctrl + V",
+        text: '粘贴',
+        subText: 'Ctrl + V',
         handler: () => {
-          console.log("Paste not implemented yet");
+          // 由全局快捷键处理，此处占位
+          console.log('Paste not implemented here')
         },
       },
       {
-        text: "全选",
-        subText: "Ctrl + A",
+        text: '全选',
+        subText: 'Ctrl + A',
         handler: () => {
-          const ids = elementList.map((el) => el.id);
-          useMainStore.getState().setActiveElementIdList(ids);
+          const ids = elementList.map((el) => el.id)
+          useMainStore.getState().setActiveElementIdList(ids)
         },
       },
       { divider: true },
       {
-        text: "网格线",
+        text: '网格线',
         handler: () => {
-          const { gridLinesState, setGridLinesState } = useMainStore.getState();
-          setGridLinesState(!gridLinesState);
+          const { gridLinesState, setGridLinesState } = useMainStore.getState()
+          setGridLinesState(!gridLinesState)
         },
       },
       {
-        text: "重置画布",
+        text: '重置画布',
         handler: () => {
-          useMainStore.getState().setCanvasPercentage(90);
+          useMainStore.getState().setCanvasPercentage(90)
         },
       },
     ],
     [elementList]
-  );
+  )
+  useContextMenu(containerRef, menus)
 
-  useContextMenu(containerRef, menus);
+  /**
+   * 移除画布编辑区域焦点
+   */
+  const removeEditorAreaFocus = () => {
+    const state = useMainStore.getState()
+    if (state.editorAreaFocus) {
+      state.setEditorareaFocus(false)
+    }
+  }
 
+  /**
+   * 监听画布外部点击：移除编辑区域焦点并清除文字选区
+   */
+  useClickOutside(containerRef, removeEditorAreaFocus)
+
+  /**
+   * 监听正在操作元素变化：清空组合元素激活状态
+   */
+  useEffect(() => {
+    setActiveGroupElementId('')
+  }, [handleElementId, setActiveGroupElementId])
+
+  /**
+   * 选中元素：阻止事件冒泡并转交原生事件给选择逻辑
+   */
   const handleSelectElement = (
     e: React.MouseEvent | React.TouchEvent,
     element: PPTElement,
     canMove = true
   ) => {
-    e.stopPropagation();
-    selectElement(e.nativeEvent, element, canMove);
-  };
+    e.stopPropagation()
+    selectElement(e.nativeEvent, element, canMove)
+  }
 
-  const handleMouseDown = (e: React.MouseEvent) => {
-    // If clicking on canvas background (not on element)
-    if (
-      e.target === e.currentTarget ||
-      (e.target as HTMLElement).closest(".viewport-background")
-    ) {
-      if (activeElementIdList.length > 0) {
-        if (!creatingElement) {
-          updateMouseSelection(e);
-        }
-      } else {
-        if (!creatingElement) {
-          updateMouseSelection(e);
-        }
-      }
-    }
-  };
+  /**
+   * 点击画布空白区域，清空焦点并切换拖拽/框选状态
+   */
+  const handleClickBlankArea = (e: React.MouseEvent) => {
+    if (activeElementIdList.length) setActiveElementIdList([])
 
-  const handleContainerMouseDown = (e: React.MouseEvent) => {
     if (spaceKeyState) {
-      dragViewport(e.nativeEvent);
-      return;
+      dragViewport(e.nativeEvent)
     }
-    handleMouseDown(e);
-  };
+    else {
+      updateMouseSelection(e)
+    }
 
+    if (!editorAreaFocus) setEditorareaFocus(true)
+    if (textFormatPainter) setTextFormatPainter(null)
+    removeAllRanges()
+  }
+
+  /**
+   * 双击空白处插入文本元素
+   */
   const handleDblClick = (e: React.MouseEvent) => {
-    if (!currentSlide) return;
-
-    if (activeElementIdList.length) {
-      const element = currentSlide.elements.find(
-        (el) => el.id === activeElementIdList[0]
-      );
-      if (element && element.type === ElementTypes.TEXT) {
-        setHandleElementId(element.id);
-      }
-    } else {
-      const { clientX, clientY } = e;
-      const { x, y } = viewportRef.current!.getBoundingClientRect();
-      const left = (clientX - x) / canvasScale;
-      const top = (clientY - y) / canvasScale;
-      createTextElement({ left, top, width: 200, height: 50 });
+    if (activeElementIdList.length || creatingElement || creatingCustomShape) {
+      return
     }
-  };
+    if (!viewportRef.current) return
+
+    const { pageX, pageY } = e
+    const { x, y } = viewportRef.current.getBoundingClientRect()
+    const left = (pageX - x) / canvasScale
+    const top = (pageY - y) / canvasScale
+    createTextElement({
+      left,
+      top,
+      width: 200 / canvasScale, // 除以 canvasScale 是为了与点击选区创建的形式保持相同的宽度
+      height: 0,
+    })
+  }
+
+  /**
+   * 组件挂载：如存在选中元素则清空（用于退出放映后清理残留状态）
+   */
+  useEffect(() => {
+    if (activeElementIdList.length) setActiveElementIdList([])
+  }, [])
+
+  /**
+   * 组件卸载：清空文字格式刷状态
+   */
+  useEffect(() => {
+    return () => {
+      const { textFormatPainter: painter } = useMainStore.getState()
+      if (painter) setTextFormatPainter(null)
+    }
+  }, [setTextFormatPainter])
+
+  /**
+   * 鼠标滚轮仅用于翻页
+   */
+  const throttleUpdateSlideIndex = useMemo(
+    () =>
+      throttle((key: string) => updateSlideIndex(key), 300, {
+        leading: true,
+        trailing: false,
+      }),
+    [updateSlideIndex]
+  )
+
+  const handleMousewheelCanvas = (e: WheelEvent) => {
+    e.preventDefault()
+    if (e.deltaY > 0) throttleUpdateSlideIndex(KEYS.DOWN)
+    else if (e.deltaY < 0) throttleUpdateSlideIndex(KEYS.UP)
+  }
 
   useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
+    const el = containerRef.current
+    if (!el) return
 
-    const handleWheel = throttle(
-      (e: WheelEvent) => {
-        if (e.ctrlKey) return;
-        e.preventDefault();
+    el.addEventListener('wheel', handleMousewheelCanvas, { passive: false })
+    return () => el.removeEventListener('wheel', handleMousewheelCanvas)
+  }, [throttleUpdateSlideIndex])
 
-        if (e.deltaY > 0) {
-          const { slideIndex, updateSlideIndex } = useSlidesStore.getState();
-          updateSlideIndex(slideIndex + 1);
-        } else if (e.deltaY < 0) {
-          const { slideIndex, updateSlideIndex } = useSlidesStore.getState();
-          updateSlideIndex(slideIndex - 1);
-        }
-      },
-      100,
-      { leading: true, trailing: false }
-    );
+  /**
+   * 打开链接配置弹窗
+   */
+  const openLinkDialog = () => setLinkDialogVisible(true)
 
-    container.addEventListener("wheel", handleWheel, { passive: false });
-
-    return () => {
-      container.removeEventListener("wheel", handleWheel);
-    };
-  }, []);
-
-  const openLinkDialog = () => {
-    setLinkDialogVisible(true);
-  };
-
-  // Wrappers for Operate handlers
+  // 操作层处理器封装
   const handleRotateElement = (e: React.MouseEvent, element: any) => {
-    rotateElement(e.nativeEvent, element);
-  };
+    rotateElement(e.nativeEvent, element)
+  }
   const handleScaleElement = (
     e: React.MouseEvent,
     element: any,
     command: OperateResizeHandlers
   ) => {
-    scaleElement(e.nativeEvent, element, command);
-  };
+    scaleElement(e.nativeEvent, element, command)
+  }
   const handleDragLineElement = (
     e: React.MouseEvent,
     element: any,
     command: OperateLineHandlers
   ) => {
-    dragLineElement(e.nativeEvent, element, command);
-  };
+    dragLineElement(e.nativeEvent, element, command)
+  }
   const handleMoveShapeKeypoint = (
     e: React.MouseEvent,
     element: any,
     index: number
   ) => {
-    moveShapeKeypoint(e.nativeEvent, element, index);
-  };
+    moveShapeKeypoint(e.nativeEvent, element, index)
+  }
   const handleScaleMultiElement = (
     e: React.MouseEvent,
     range: any,
     command: OperateResizeHandlers
   ) => {
-    scaleMultiElement(e.nativeEvent, range, command);
-  };
+    scaleMultiElement(e.nativeEvent, range, command)
+  }
 
   return (
     <div
-      className="canvas-container"
+      className="canvas"
       ref={containerRef}
-      onMouseDown={handleContainerMouseDown}
+      onMouseDown={handleClickBlankArea}
       onDoubleClick={handleDblClick}
       onDragOver={(e) => e.preventDefault()}
     >
+      {/* 弹窗组件 (Vue 版本此处缺失，保留以维持功能) */}
       {linkDialogVisible && (
         <LinkDialog onClose={() => setLinkDialogVisible(false)} />
       )}
@@ -302,23 +336,10 @@ const Canvas: React.FC = () => {
           height: viewportStyles.height * canvasScale,
           left: viewportStyles.left,
           top: viewportStyles.top,
-          position: "absolute",
-          boxShadow:
-            "0 0 0 1px rgba(0, 0, 0, 0.01), 0 0 12px 0 rgba(0, 0, 0, 0.1)",
         }}
       >
-        <div
-          className="operates"
-          style={{
-            width: "100%",
-            height: "100%",
-            position: "absolute",
-            top: 0,
-            left: 0,
-          }}
-        >
-          <ViewportBackground />
-
+        <div className="operates">
+          {/* 辅助线 (Vue 版本暂未实现，保留) */}
           {alignmentLines.map((line, index) => (
             <AlignmentLine
               key={index}
@@ -336,35 +357,31 @@ const Canvas: React.FC = () => {
             />
           )}
 
-          {currentSlide?.elements.map((element) => (
-            <Operate
-              key={element.id}
-              elementInfo={element}
-              isSelected={activeElementIdList.includes(element.id)}
-              isActive={handleElementId === element.id}
-              isActiveGroupElement={activeGroupElementId === element.id}
-              isMultiSelect={activeElementIdList.length > 1}
-              rotateElement={handleRotateElement}
-              scaleElement={handleScaleElement}
-              dragLineElement={handleDragLineElement}
-              moveShapeKeypoint={handleMoveShapeKeypoint}
-              openLinkDialog={openLinkDialog}
-            />
-          ))}
+          {currentSlide?.elements
+            .filter((el) => !hiddenElementIdList.includes(el.id))
+            .map((element) => (
+              <Operate
+                key={element.id}
+                elementInfo={element}
+                isSelected={activeElementIdList.includes(element.id)}
+                isActive={handleElementId === element.id}
+                isActiveGroupElement={activeGroupElementId === element.id}
+                isMultiSelect={activeElementIdList.length > 1}
+                rotateElement={handleRotateElement}
+                scaleElement={handleScaleElement}
+                dragLineElement={handleDragLineElement}
+                moveShapeKeypoint={handleMoveShapeKeypoint}
+                openLinkDialog={openLinkDialog}
+              />
+            ))}
+
+          <ViewportBackground />
         </div>
 
         <div
           className="viewport"
           ref={viewportRef}
-          style={{
-            transform: `scale(${canvasScale})`,
-            transformOrigin: "0 0",
-            width: "100%",
-            height: "100%",
-            position: "absolute",
-            top: 0,
-            left: 0,
-          }}
+          style={{ transform: `scale(${canvasScale})` }}
         >
           {mouseSelectionVisible && selectionState && (
             <MouseSelection
@@ -376,21 +393,22 @@ const Canvas: React.FC = () => {
             />
           )}
 
-          {currentSlide?.elements.map((element, index) => (
-            <EditableElement
-              key={element.id}
-              elementInfo={element}
-              elementIndex={index + 1}
-              isMultiSelect={activeElementIdList.length > 1}
-              selectElement={handleSelectElement}
-            />
-          ))}
+          {currentSlide?.elements
+            .filter((el) => !hiddenElementIdList.includes(el.id))
+            .map((element, index) => (
+              <EditableElement
+                key={element.id}
+                elementInfo={element}
+                elementIndex={index + 1}
+                isMultiSelect={activeElementIdList.length > 1}
+                selectElement={handleSelectElement}
+                openLinkDialog={openLinkDialog}
+              />
+            ))}
         </div>
       </div>
-
-      {gridLinesState && <GridLines />}
     </div>
-  );
-};
+  )
+}
 
-export default Canvas;
+export default Canvas

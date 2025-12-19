@@ -1,4 +1,10 @@
-import React, { useRef, useEffect, useState, useMemo, useCallback } from 'react'
+import React, {
+  useRef,
+  useEffect,
+  useState,
+  useMemo,
+  useCallback,
+} from 'react'
 import clsx from 'clsx'
 import { useMainStore, useSlidesStore } from '@/store'
 import type { PPTShapeElement, ShapeText } from '@/types/slides'
@@ -10,19 +16,42 @@ import useHistorySnapshot from '@/hooks/useHistorySnapshot'
 
 import GradientDefs from './GradientDefs'
 import PatternDefs from './PatternDefs'
-import ProsemirrorEditor, { ProsemirrorEditorRef } from '@/views/components/element/ProsemirrorEditor'
-import { ElementProps } from '../types'
+import type {
+  ProsemirrorEditorRef,
+} from '@/views/components/element/ProsemirrorEditor'
+import ProsemirrorEditor from '@/views/components/element/ProsemirrorEditor'
 import './index.scss'
+import type { ContextmenuItem } from '@/components/Contextmenu/types'
+import useContextMenu from '@/hooks/useContextMenu'
 
-const ShapeElement: React.FC<ElementProps> = ({ elementInfo, selectElement, contextmenus }) => {
+export interface ElementProps {
+  elementInfo: PPTShapeElement;
+  selectElement: (
+    e: MouseEvent | TouchEvent,
+    element: PPTShapeElement,
+    canMove?: boolean
+  ) => void;
+  contextmenus: () => ContextmenuItem[] | null;
+}
+
+const ShapeElement: React.FC<ElementProps> = ({
+  elementInfo,
+  selectElement,
+  contextmenus,
+}) => {
   const element = elementInfo as PPTShapeElement
-  
-  const { handleElementId, shapeFormatPainter, setShapeFormatPainter } = useMainStore()
+
+  const contentRef = useRef<HTMLDivElement>(null)
+
+  const { handleElementId, shapeFormatPainter, setShapeFormatPainter } =
+    useMainStore()
   const { theme, updateElement, removeElementProps } = useSlidesStore()
   const { addHistorySnapshot } = useHistorySnapshot()
 
   const { fill } = useElementFill(element, 'editable')
-  const { outlineWidth, outlineColor, strokeDashArray } = useElementOutline(element.outline)
+  const { outlineWidth, outlineColor, strokeDashArray } = useElementOutline(
+    element.outline
+  )
   const { shadowStyle } = useElementShadow(element.shadow)
   const { flipStyle } = useElementFlip(element.flipH, element.flipV)
 
@@ -41,9 +70,12 @@ const ShapeElement: React.FC<ElementProps> = ({ elementInfo, selectElement, cont
     return element.text
   }, [element.text, theme])
 
-  const handleSelectElement = (e: React.MouseEvent | React.TouchEvent, canMove = true) => {
+  const handleSelectElement = (
+    e: React.MouseEvent | React.TouchEvent,
+    canMove = true
+  ) => {
     e.stopPropagation()
-    selectElement?.(e, element, canMove)
+    selectElement?.(e.nativeEvent, element, canMove)
   }
 
   const execFormatPainter = () => {
@@ -93,9 +125,16 @@ const ShapeElement: React.FC<ElementProps> = ({ elementInfo, selectElement, cont
     setTimeout(() => prosemirrorEditorRef.current?.focus(), 0)
   }
 
+  /**
+   * 绑定右键菜单到内容容器
+   */
+  useContextMenu(contentRef, () => contextmenus?.() || [])
+
   return (
-    <div 
-      className={clsx('editable-element-shape', { 'format-painter': shapeFormatPainter })}
+    <div
+      className={clsx('editable-element-shape', {
+        'format-painter': shapeFormatPainter,
+      })}
       style={{
         top: element.top + 'px',
         left: element.left + 'px',
@@ -107,7 +146,7 @@ const ShapeElement: React.FC<ElementProps> = ({ elementInfo, selectElement, cont
         className="rotate-wrapper"
         style={{ transform: `rotate(${element.rotate}deg)` }}
       >
-        <div 
+        <div
           className="element-content"
           style={{
             opacity: element.opacity,
@@ -116,50 +155,52 @@ const ShapeElement: React.FC<ElementProps> = ({ elementInfo, selectElement, cont
             color: text.defaultColor,
             fontFamily: text.defaultFontName,
           }}
-          // v-contextmenu="contextmenus"
+          ref={contentRef}
           onMouseDown={handleSelectElement}
           onMouseUp={execFormatPainter}
           onTouchStart={handleSelectElement}
           onDoubleClick={startEdit}
         >
-          <svg 
-            overflow="visible" 
-            width={element.width}
-            height={element.height}
-          >
+          <svg overflow="visible" width={element.width} height={element.height}>
             <defs>
               {element.pattern ? (
                 <PatternDefs
-                  id={`editable-pattern-${element.id}`} 
+                  id={`editable-pattern-${element.id}`}
                   src={element.pattern}
                 />
               ) : element.gradient ? (
                 <GradientDefs
-                  id={`editable-gradient-${element.id}`} 
+                  id={`editable-gradient-${element.id}`}
                   type={element.gradient.type}
                   colors={element.gradient.colors}
                   rotate={element.gradient.rotate}
                 />
               ) : null}
             </defs>
-            <g 
-              transform={`scale(${element.width / element.viewBox[0]}, ${element.height / element.viewBox[1]}) translate(0,0) matrix(1,0,0,1,0,0)`}
+            <g
+              transform={`scale(${element.width / element.viewBox[0]}, ${
+                element.height / element.viewBox[1]
+              }) translate(0,0) matrix(1,0,0,1,0,0)`}
             >
-              <path 
+              <path
                 className="shape-path"
-                vectorEffect="non-scaling-stroke" 
-                strokeLinecap="butt" 
+                vectorEffect="non-scaling-stroke"
+                strokeLinecap="butt"
                 strokeMiterlimit="8"
-                d={element.path} 
+                d={element.path}
                 fill={fill}
                 stroke={outlineColor}
-                strokeWidth={outlineWidth} 
-                strokeDasharray={strokeDashArray} 
+                strokeWidth={outlineWidth}
+                strokeDasharray={strokeDashArray}
               ></path>
             </g>
           </svg>
 
-          <div className={clsx('shape-text', text.align, { editable: editable || text.content })}>
+          <div
+            className={clsx('shape-text', text.align, {
+              editable: editable || text.content,
+            })}
+          >
             {(editable || text.content) && (
               <ProsemirrorEditor
                 ref={prosemirrorEditorRef}

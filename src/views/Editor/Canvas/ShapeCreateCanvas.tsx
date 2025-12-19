@@ -1,16 +1,24 @@
-import React, { useRef, useState, useMemo, useEffect, useCallback } from 'react'
-import { useMainStore, useKeyboardStore, useSlidesStore } from '@/store'
+import React, {
+  useRef,
+  useState,
+  useMemo,
+  useEffect,
+  useCallback,
+} from 'react'
+import { useKeyboardStore, useSlidesStore } from '@/store'
 import type { CreateCustomShapeData } from '@/types/edit'
 import { KEYS } from '@/configs/hotkey'
 import './ShapeCreateCanvas.scss'
 
 interface ShapeCreateCanvasProps {
-  onCreated: (payload: CreateCustomShapeData) => void
-  onClose: () => void
+  onCreated: (payload: CreateCustomShapeData) => void;
+  onClose: () => void;
 }
 
-const ShapeCreateCanvas: React.FC<ShapeCreateCanvasProps> = ({ onCreated, onClose }) => {
-  const { setCreatingCustomShapeState } = useMainStore()
+const ShapeCreateCanvas: React.FC<ShapeCreateCanvasProps> = ({
+  onCreated,
+  onClose,
+}) => {
   const { ctrlOrShiftKeyActive } = useKeyboardStore()
   const { theme } = useSlidesStore()
 
@@ -18,7 +26,9 @@ const ShapeCreateCanvas: React.FC<ShapeCreateCanvasProps> = ({ onCreated, onClos
   const isMouseDown = useRef(false)
   const offset = useRef({ x: 0, y: 0 })
 
-  const [mousePosition, setMousePosition] = useState<[number, number] | null>(null)
+  const [mousePosition, setMousePosition] = useState<[number, number] | null>(
+    null
+  )
   const [points, setPoints] = useState<[number, number][]>([])
   const [closed, setClosed] = useState(false)
 
@@ -47,7 +57,7 @@ const ShapeCreateCanvas: React.FC<ShapeCreateCanvasProps> = ({ onCreated, onClos
   const updateMousePosition = (e: React.MouseEvent) => {
     if (isMouseDown.current) {
       const { pageX, pageY } = getPoint(e, true)
-      setPoints(prev => [...prev, [pageX, pageY]])
+      setPoints((prev) => [...prev, [pageX, pageY]])
       setMousePosition(null)
       return
     }
@@ -105,7 +115,10 @@ const ShapeCreateCanvas: React.FC<ShapeCreateCanvasProps> = ({ onCreated, onClos
       minX + offset.current.x,
       minY + offset.current.y,
     ]
-    const end: [number, number] = [maxX + offset.current.x, maxY + offset.current.y]
+    const end: [number, number] = [
+      maxX + offset.current.x,
+      maxY + offset.current.y,
+    ]
     const viewBox: [number, number] = [maxX - minX, maxY - minY]
 
     return {
@@ -121,7 +134,7 @@ const ShapeCreateCanvas: React.FC<ShapeCreateCanvasProps> = ({ onCreated, onClos
     isMouseDown.current = true
 
     if (closed) onCreated(getCreateData())
-    else setPoints(prev => [...prev, [pageX, pageY]])
+    else setPoints((prev) => [...prev, [pageX, pageY]])
 
     const onMouseUp = () => {
       isMouseDown.current = false
@@ -163,9 +176,16 @@ const ShapeCreateCanvas: React.FC<ShapeCreateCanvasProps> = ({ onCreated, onClos
     <div
       className="shape-create-canvas"
       ref={shapeCanvasRef}
-      onMouseDown={(e) => { e.stopPropagation(); addPoint(e) }}
+      onMouseDown={(e) => {
+        e.stopPropagation()
+        addPoint(e)
+      }}
       onMouseMove={(e) => updateMousePosition(e)}
-      onContextMenu={(e) => { e.stopPropagation(); e.preventDefault(); close() }}
+      onContextMenu={(e) => {
+        e.stopPropagation()
+        e.preventDefault()
+        close()
+      }}
     >
       <svg overflow="visible">
         <path

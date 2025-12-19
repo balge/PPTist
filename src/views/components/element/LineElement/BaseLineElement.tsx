@@ -7,7 +7,7 @@ import LinePointMarker from './LinePointMarker'
 import './BaseLineElement.scss'
 
 interface BaseLineElementProps {
-  elementInfo: PPTLineElement
+  elementInfo: PPTLineElement;
 }
 
 const BaseLineElement: React.FC<BaseLineElementProps> = ({ elementInfo }) => {
@@ -25,8 +25,16 @@ const BaseLineElement: React.FC<BaseLineElementProps> = ({ elementInfo }) => {
 
   const lineDashArray = useMemo(() => {
     const size = elementInfo.width
-    if (elementInfo.style === 'dashed') return size <= 8 ? `${size * 5} ${size * 2.5}` : `${size * 5} ${size * 1.5}`
-    if (elementInfo.style === 'dotted') return size <= 8 ? `${size * 1.8} ${size * 1.6}` : `${size * 1.5} ${size * 1.2}`
+    if (elementInfo.style === 'dashed') {
+      return size <= 8
+        ? `${size * 5} ${size * 2.5}`
+        : `${size * 5} ${size * 1.5}`
+    }
+    if (elementInfo.style === 'dotted') {
+      return size <= 8
+        ? `${size * 1.8} ${size * 1.6}`
+        : `${size * 1.5} ${size * 1.2}`
+    }
     return '0 0'
   }, [elementInfo.width, elementInfo.style])
 
@@ -34,26 +42,24 @@ const BaseLineElement: React.FC<BaseLineElementProps> = ({ elementInfo }) => {
     return getLineElementPath(elementInfo)
   }, [elementInfo])
 
-  const startPoint = elementInfo.points[0] as Exclude<LinePoint, ''> | undefined
+  const startPoint = elementInfo.points[0] as
+    | Exclude<LinePoint, ''>
+    | undefined
   const endPoint = elementInfo.points[1] as Exclude<LinePoint, ''> | undefined
 
   return (
-    <div 
+    <div
       className="base-element-line"
       style={{
         top: elementInfo.top + 'px',
         left: elementInfo.left + 'px',
       }}
     >
-      <div 
+      <div
         className="element-content"
         style={{ filter: shadowStyle ? `drop-shadow(${shadowStyle})` : '' }}
       >
-        <svg
-          overflow="visible" 
-          width={svgWidth}
-          height={svgHeight}
-        >
+        <svg overflow="visible" width={svgWidth} height={svgHeight}>
           <defs>
             {startPoint && (
               <LinePointMarker
@@ -75,13 +81,17 @@ const BaseLineElement: React.FC<BaseLineElementProps> = ({ elementInfo }) => {
             )}
           </defs>
           <path
-            d={path} 
-            stroke={elementInfo.color} 
-            strokeWidth={elementInfo.width} 
+            d={path}
+            stroke={elementInfo.color}
+            strokeWidth={elementInfo.width}
             strokeDasharray={lineDashArray}
-            fill="none" 
-            markerStart={startPoint ? `url(#${elementInfo.id}-${startPoint}-start)` : ''}
-            markerEnd={endPoint ? `url(#${elementInfo.id}-${endPoint}-end)` : ''}
+            fill="none"
+            markerStart={
+              startPoint ? `url(#${elementInfo.id}-${startPoint}-start)` : ''
+            }
+            markerEnd={
+              endPoint ? `url(#${elementInfo.id}-${endPoint}-end)` : ''
+            }
           ></path>
         </svg>
       </div>

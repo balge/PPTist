@@ -25,7 +25,7 @@ export default (
         hls.attachMedia(videoRef.current)
         
         return () => {
-            hls.destroy()
+          hls.destroy()
         }
       }
     }
@@ -41,7 +41,7 @@ export default (
         flvPlayer.load()
         
         return () => {
-            flvPlayer.destroy()
+          flvPlayer.destroy()
         }
       }
     }

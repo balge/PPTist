@@ -1,21 +1,37 @@
-import React, { useMemo } from 'react'
+import React, { useMemo, useRef } from 'react'
 import { useMainStore, useSlidesStore } from '@/store'
 import type { PPTAudioElement } from '@/types/slides'
 import AudioPlayer from './AudioPlayer'
-import { ElementProps } from '../types'
 import './index.scss'
+import type { ContextmenuItem } from '@/components/Contextmenu/types'
+import { VolumeNotice } from '@icon-park/react'
+import useContextMenu from '@/hooks/useContextMenu'
 
-// Icons
-const IconVolumeNotice = () => <svg width="1em" height="1em" viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth="4" strokeLinejoin="round"><path d="M24 6V42C17 42 11.7985 32.8391 11.7985 32.8391H6C4.89543 32.8391 4 31.9437 4 30.8391V17.1609C4 16.0563 4.89543 15.1609 6 15.1609H11.7985C11.7985 15.1609 17 6 24 6Z" fill="currentColor" stroke="none"/><path d="M32 24C32 18.4772 36.4772 14 42 14" strokeLinecap="round"/><path d="M32 24C32 29.5228 36.4772 34 42 34" strokeLinecap="round"/></svg>
+export interface ElementProps {
+  elementInfo: PPTAudioElement;
+  selectElement: (
+    e: MouseEvent | TouchEvent,
+    element: PPTAudioElement,
+    canMove?: boolean
+  ) => void;
+  contextmenus: () => ContextmenuItem[] | null;
+}
 
-const AudioElement: React.FC<ElementProps> = ({ elementInfo, selectElement, contextmenus }) => {
-  const element = elementInfo as PPTAudioElement
+const AudioElement: React.FC<ElementProps> = ({
+  elementInfo,
+  selectElement,
+  contextmenus,
+}) => {
+  /**
+   * 组件入口：渲染音频元素及控制条，并绑定右键菜单与选择事件
+   */
   const { canvasScale, handleElementId } = useMainStore()
   const { viewportRatio, viewportSize } = useSlidesStore()
+  const contentRef = useRef<HTMLDivElement>(null)
 
   const audioIconSize = useMemo(() => {
-    return Math.min(element.width, element.height) + 'px'
-  }, [element.width, element.height])
+    return Math.min(elementInfo.width, elementInfo.height) + 'px'
+  }, [elementInfo.width, elementInfo.height])
 
   const audioPlayerPosition = useMemo(() => {
     const canvasWidth = viewportSize
@@ -24,14 +40,14 @@ const AudioElement: React.FC<ElementProps> = ({ elementInfo, selectElement, cont
     const audioWidth = 280 / canvasScale
     const audioHeight = 50 / canvasScale
 
-    const elWidth = element.width
-    const elHeight = element.height
-    const elLeft = element.left
-    const elTop = element.top
+    const elWidth = elementInfo.width
+    const elHeight = elementInfo.height
+    const elLeft = elementInfo.left
+    const elTop = elementInfo.top
 
     let left = 0
     let top = elHeight
-    
+
     if (elLeft + audioWidth >= canvasWidth) left = elWidth - audioWidth
     if (elTop + elHeight + audioHeight >= canvasHeight) top = -audioHeight
 
@@ -39,49 +55,60 @@ const AudioElement: React.FC<ElementProps> = ({ elementInfo, selectElement, cont
       left: left + 'px',
       top: top + 'px',
     }
-  }, [viewportSize, viewportRatio, canvasScale, element.width, element.height, element.left, element.top])
+  }, [
+    viewportSize,
+    viewportRatio,
+    canvasScale,
+    elementInfo.width,
+    elementInfo.height,
+    elementInfo.left,
+    elementInfo.top,
+  ])
 
+  /**
+   * 处理元素选择事件，转换为原生事件以匹配选择函数类型
+   */
   const handleSelectElement = (e: React.MouseEvent | React.TouchEvent) => {
     e.stopPropagation()
-    selectElement?.(e, element)
+    selectElement?.(e.nativeEvent, elementInfo)
   }
 
+  /**
+   * 绑定右键菜单到内容容器
+   */
+  useContextMenu(contentRef, () => contextmenus?.() || [])
+
   return (
-    <div 
+    <div
       className="editable-element-audio"
       style={{
-        top: element.top + 'px',
-        left: element.left + 'px',
-        width: element.width + 'px',
-        height: element.height + 'px',
+        top: elementInfo.top + 'px',
+        left: elementInfo.left + 'px',
+        width: elementInfo.width + 'px',
+        height: elementInfo.height + 'px',
       }}
     >
       <div
         className="rotate-wrapper"
-        style={{ transform: `rotate(${element.rotate}deg)` }}
+        style={{ transform: `rotate(${elementInfo.rotate}deg)` }}
       >
-        <div 
-          className="element-content" 
-          // v-contextmenu="contextmenus"
-          onMouseDown={handleSelectElement}
-          onTouchStart={handleSelectElement}
+        <div
+          ref={contentRef}
+          className="element-content"
+          onMouseDown={(e) => handleSelectElement(e)}
+          onTouchStart={(e) => handleSelectElement(e)}
         >
-          <div 
+          <VolumeNotice
             className="audio-icon"
-            style={{
-              fontSize: audioIconSize,
-              color: element.color,
-            }}
-          >
-            <IconVolumeNotice />
-          </div>
-          
-          {handleElementId === element.id && (
+            style={{ fontSize: audioIconSize, color: elementInfo.color }}
+          />
+
+          {handleElementId === elementInfo.id && (
             <AudioPlayer
               className="audio-player"
               style={{ ...audioPlayerPosition }}
-              src={element.src} 
-              loop={element.loop}
+              src={elementInfo.src}
+              loop={elementInfo.loop}
               scale={canvasScale}
               onMouseDown={(e) => e.stopPropagation()}
             />

@@ -6,15 +6,18 @@ import useElementShadow from '@/views/components/element/hooks/useElementShadow'
 import './BaseTextElement.scss'
 
 interface BaseTextElementProps {
-  elementInfo: PPTTextElement
-  target?: string
+  elementInfo: PPTTextElement;
+  target?: string;
 }
 
-const BaseTextElement: React.FC<BaseTextElementProps> = ({ elementInfo, target }) => {
+const BaseTextElement: React.FC<BaseTextElementProps> = ({
+  elementInfo,
+  target,
+}) => {
   const { shadowStyle } = useElementShadow(elementInfo.shadow)
 
   return (
-    <div 
+    <div
       className="base-element-text"
       style={{
         top: elementInfo.top + 'px',
@@ -27,7 +30,7 @@ const BaseTextElement: React.FC<BaseTextElementProps> = ({ elementInfo, target }
         className="rotate-wrapper"
         style={{ transform: `rotate(${elementInfo.rotate}deg)` }}
       >
-        <div 
+        <div
           className="element-content"
           style={{
             width: elementInfo.vertical ? 'auto' : elementInfo.width + 'px',
@@ -47,11 +50,19 @@ const BaseTextElement: React.FC<BaseTextElementProps> = ({ elementInfo, target }
             height={elementInfo.height}
             outline={elementInfo.outline}
           />
-          <div 
-            className={clsx('text', 'ProseMirror-static', { 'thumbnail': target === 'thumbnail' })}
-            style={{
-              '--paragraphSpace': `${elementInfo.paragraphSpace === undefined ? 5 : elementInfo.paragraphSpace}px`,
-            } as React.CSSProperties}
+          <div
+            className={clsx('text', 'ProseMirror-static', {
+              thumbnail: target === 'thumbnail',
+            })}
+            style={
+              {
+                '--paragraphSpace': `${
+                  elementInfo.paragraphSpace === undefined
+                    ? 5
+                    : elementInfo.paragraphSpace
+                }px`,
+              } as React.CSSProperties
+            }
             dangerouslySetInnerHTML={{ __html: elementInfo.content }}
           ></div>
         </div>

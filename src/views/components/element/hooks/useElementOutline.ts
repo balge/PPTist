@@ -11,12 +11,25 @@ export default (outline?: PPTElementOutline) => {
   }, [outline?.width, canvasScale])
 
   const outlineColor = useMemo(() => {
-    return outline?.color || '#000'
+    return outline?.color || '#d14424'
   }, [outline?.color])
 
+  const outlineStyle = useMemo(() => {
+    return outline?.style || 'solid'
+  }, [outline?.style])
+
   const strokeDashArray = useMemo(() => {
-    if (outline?.style === 'dashed') return '10 6'
-    if (outline?.style === 'dotted') return '2 2'
+    const size = outlineWidth
+    if (outlineStyle === 'dashed') {
+      return size <= 6
+        ? `${size * 4.5} ${size * 2}`
+        : `${size * 4} ${size * 1.5}`
+    }
+    if (outlineStyle === 'dotted') {
+      return size <= 6
+        ? `${size * 1.8} ${size * 1.6}`
+        : `${size * 1.5} ${size * 1.2}`
+    }
     return '0 0'
   }, [outline?.style])
 

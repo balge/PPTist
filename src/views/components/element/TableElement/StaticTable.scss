@@ -15,7 +15,9 @@ table {
   word-wrap: break-word;
   user-select: none;
 
-  // CSS variables will be set inline
+  --themeColor: $themeColor;
+  --subThemeColor1: $themeColor;
+  --subThemeColor2: $themeColor;
 
   &.theme {
     background-color: #fff;

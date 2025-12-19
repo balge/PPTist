@@ -13,7 +13,10 @@ const GridLines: React.FC = () => {
   const gridColor = useMemo(() => {
     const bgColor = background?.color || '#fff'
     const colorList = ['#000', '#fff']
-    return tinycolor.mostReadable(bgColor, colorList, { includeFallbackColors: true }).setAlpha(.5).toRgbString()
+    return tinycolor
+      .mostReadable(bgColor, colorList, { includeFallbackColors: true })
+      .setAlpha(0.5)
+      .toRgbString()
   }, [background])
 
   // 网格路径
@@ -32,18 +35,16 @@ const GridLines: React.FC = () => {
     return p
   }, [viewportSize, viewportRatio, gridLineSize])
 
-  if (!gridLineSize) return null
-
   return (
     <svg className="grid-lines">
-      <path 
+      <path
         style={{
           transform: `scale(${canvasScale})`,
-        }} 
-        d={path} 
-        fill="none" 
-        stroke={gridColor} 
-        strokeWidth="0.3" 
+        }}
+        d={path}
+        fill="none"
+        stroke={gridColor}
+        strokeWidth="0.3"
         strokeDasharray="5"
       ></path>
     </svg>

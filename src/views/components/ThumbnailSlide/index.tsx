@@ -4,14 +4,21 @@ import type { Slide } from '@/types/slides'
 import useSlideBackgroundStyle from '@/hooks/useSlideBackgroundStyle'
 import ThumbnailElement from './ThumbnailElement'
 import './index.scss'
+import clsx from 'clsx'
 
 interface ThumbnailSlideProps {
-  slide: Slide
-  size: number
-  visible?: boolean
+  slide: Slide;
+  size: number;
+  visible?: boolean;
+  className?: string;
 }
 
-const ThumbnailSlide: React.FC<ThumbnailSlideProps> = ({ slide, size, visible = true }) => {
+const ThumbnailSlide: React.FC<ThumbnailSlideProps> = ({
+  slide,
+  size,
+  visible = true,
+  className,
+}) => {
   const { viewportRatio, viewportSize } = useSlidesStore()
 
   const { backgroundStyle } = useSlideBackgroundStyle(slide.background)
@@ -19,15 +26,15 @@ const ThumbnailSlide: React.FC<ThumbnailSlideProps> = ({ slide, size, visible = 
   const scale = useMemo(() => size / viewportSize, [size, viewportSize])
 
   return (
-    <div 
-      className="thumbnail-slide"
+    <div
+      className={clsx('thumbnail-slide', className)}
       style={{
         width: size,
         height: size * viewportRatio,
       }}
     >
       {visible ? (
-        <div 
+        <div
           className="elements"
           style={{
             width: viewportSize,

@@ -1,7 +1,8 @@
 import React, { useMemo } from "react";
 import { useMainStore, useSlidesStore } from "@/store";
-import { ElementTypes, PPTElement } from "@/types/slides";
-import { OperateResizeHandlers, OperateLineHandlers } from "@/types/edit";
+import type { PPTElement } from "@/types/slides";
+import { ElementTypes } from "@/types/slides";
+import type { OperateResizeHandlers, OperateLineHandlers } from "@/types/edit";
 
 import CommonElementOperate from "./CommonElementOperate";
 import ImageElementOperate from "./ImageElementOperate";

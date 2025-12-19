@@ -1,17 +1,17 @@
 import React from 'react'
+import './RotateHandler.scss'
 
 interface RotateHandlerProps {
-  style?: React.CSSProperties
-  onMouseDown?: (e: React.MouseEvent) => void
+  style?: React.CSSProperties;
+  onMouseDown?: (e: React.MouseEvent) => void;
 }
 
-const RotateHandler: React.FC<RotateHandlerProps> = ({ style, onMouseDown }) => {
+const RotateHandler: React.FC<RotateHandlerProps> = ({
+  style,
+  onMouseDown,
+}) => {
   return (
-    <div 
-      className="rotate-handler"
-      style={style}
-      onMouseDown={onMouseDown}
-    />
+    <div className="rotate-handler" style={style} onMouseDown={onMouseDown} />
   )
 }
 

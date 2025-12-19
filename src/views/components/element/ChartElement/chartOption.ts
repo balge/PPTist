@@ -8,16 +8,22 @@ import type {
 } from 'echarts/charts'
 import type { ChartData, ChartType } from '@/types/slides'
 
-type EChartOption = ComposeOption<BarSeriesOption | LineSeriesOption | PieSeriesOption | ScatterSeriesOption | RadarSeriesOption>
+type EChartOption = ComposeOption<
+  | BarSeriesOption
+  | LineSeriesOption
+  | PieSeriesOption
+  | ScatterSeriesOption
+  | RadarSeriesOption
+>;
 
 export interface ChartOptionPayload {
-  type: ChartType
-  data: ChartData
-  themeColors: string[]
-  textColor?: string
-  lineColor?: string
-  lineSmooth?: boolean
-  stack?: boolean
+  type: ChartType;
+  data: ChartData;
+  themeColors: string[];
+  textColor?: string;
+  lineColor?: string;
+  lineSmooth?: boolean;
+  stack?: boolean;
 }
 
 export const getChartOption = ({
@@ -29,30 +35,41 @@ export const getChartOption = ({
   lineSmooth,
   stack,
 }: ChartOptionPayload): EChartOption | null => {
-  const textStyle = textColor ? {
-    color: textColor
-  } : {}
-
-  const axisLine = textColor ? {
-    lineStyle: {
+  const textStyle = textColor
+    ? {
       color: textColor,
     }
-  } : undefined
+    : {}
 
-  const axisLabel = textColor ? {
-    color: textColor,
-  } : undefined
-
-  const splitLine = lineColor ? {
-    lineStyle: {
-      color: lineColor,
+  const axisLine = textColor
+    ? {
+      lineStyle: {
+        color: textColor,
+      },
     }
-  } : {}
+    : undefined
 
-  const legend = data.series.length > 1 ? {
-    top: 'bottom',
-    textStyle,
-  } : undefined
+  const axisLabel = textColor
+    ? {
+      color: textColor,
+    }
+    : undefined
+
+  const splitLine = lineColor
+    ? {
+      lineStyle: {
+        color: lineColor,
+      },
+    }
+    : {}
+
+  const legend =
+    data.series.length > 1
+      ? {
+        top: 'bottom',
+        textStyle,
+      }
+      : undefined
 
   if (type === 'bar') {
     return {
@@ -164,10 +181,15 @@ export const getChartOption = ({
       },
       series: [
         {
-          data: data.series[0].map((item, index) => ({ value: item, name: data.labels[index] })),
-          label: textColor ? {
-            color: textColor,
-          } : {},
+          data: data.series[0].map((item, index) => ({
+            value: item,
+            name: data.labels[index],
+          })),
+          label: textColor
+            ? {
+              color: textColor,
+            }
+            : {},
           type: 'pie',
           radius: '70%',
           emphasis: {
@@ -179,10 +201,10 @@ export const getChartOption = ({
             label: {
               show: true,
               fontSize: 14,
-              fontWeight: 'bold'
+              fontWeight: 'bold',
             },
           },
-        }
+        },
       ],
     }
   }
@@ -196,10 +218,15 @@ export const getChartOption = ({
       },
       series: [
         {
-          data: data.series[0].map((item, index) => ({ value: item, name: data.labels[index] })),
-          label: textColor ? {
-            color: textColor,
-          } : {},
+          data: data.series[0].map((item, index) => ({
+            value: item,
+            name: data.labels[index],
+          })),
+          label: textColor
+            ? {
+              color: textColor,
+            }
+            : {},
           type: 'pie',
           radius: ['40%', '70%'],
           padAngle: 1,
@@ -211,10 +238,10 @@ export const getChartOption = ({
             label: {
               show: true,
               fontSize: 14,
-              fontWeight: 'bold'
+              fontWeight: 'bold',
             },
           },
-        }
+        },
       ],
     }
   }
@@ -264,17 +291,22 @@ export const getChartOption = ({
       textStyle,
       legend,
       radar: {
-        indicator: data.labels.map(item => ({ name: item })),
+        indicator: data.labels.map((item) => ({ name: item })),
         splitLine,
-        axisLine: lineColor ? {
-          lineStyle: {
-            color: lineColor,
+        axisLine: lineColor
+          ? {
+            lineStyle: {
+              color: lineColor,
+            },
           }
-        } : undefined,
+          : undefined,
       },
       series: [
         {
-          data: data.series.map((item, index) => ({ value: item, name: data.legends[index] })),
+          data: data.series.map((item, index) => ({
+            value: item,
+            name: data.legends[index],
+          })),
           type: 'radar',
         },
       ],
@@ -306,7 +338,7 @@ export const getChartOption = ({
           symbolSize: 12,
           data: formatedData,
           type: 'scatter',
-        }
+        },
       ],
     }
   }

@@ -9,10 +9,14 @@ import ResizeHandler from './ResizeHandler'
 import BorderLine from './BorderLine'
 
 interface TableElementOperateProps {
-  elementInfo: PPTTableElement
-  handlerVisible: boolean
-  rotateElement: (e: React.MouseEvent, element: PPTTableElement) => void
-  scaleElement: (e: React.MouseEvent, element: PPTTableElement, command: OperateResizeHandlers) => void
+  elementInfo: PPTTableElement;
+  handlerVisible: boolean;
+  rotateElement: (e: React.MouseEvent, element: PPTTableElement) => void;
+  scaleElement: (
+    e: React.MouseEvent,
+    element: PPTTableElement,
+    command: OperateResizeHandlers
+  ) => void;
 }
 
 const TableElementOperate: React.FC<TableElementOperateProps> = ({
@@ -27,20 +31,19 @@ const TableElementOperate: React.FC<TableElementOperateProps> = ({
   const scaleWidth = (elementInfo.width + outlineWidth) * canvasScale
   const scaleHeight = elementInfo.height * canvasScale
 
-  const { resizeHandlers, borderLines } = useCommonOperate(scaleWidth, scaleHeight)
+  const { resizeHandlers, borderLines } = useCommonOperate(
+    scaleWidth,
+    scaleHeight
+  )
 
   return (
     <div className="table-element-operate">
-      {borderLines.map(line => (
-        <BorderLine 
-          key={line.type} 
-          type={line.type} 
-          style={line.style}
-        />
+      {borderLines.map((line) => (
+        <BorderLine key={line.type} type={line.type} style={line.style} />
       ))}
       {handlerVisible && (
         <>
-          {resizeHandlers.map(point => (
+          {resizeHandlers.map((point) => (
             <ResizeHandler
               key={point.direction}
               type={point.direction}

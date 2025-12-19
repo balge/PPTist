@@ -4,22 +4,47 @@ import type { PPTTableElement, TableCell } from '@/types/slides'
 import useHistorySnapshot from '@/hooks/useHistorySnapshot'
 
 import EditableTable from './EditableTable'
-import { ElementProps } from '../types'
 import './index.scss'
+import type { ContextmenuItem } from '@/components/Contextmenu/types'
+import useContextMenu from '@/hooks/useContextMenu'
 
-const TableElement: React.FC<ElementProps> = ({ elementInfo, selectElement, contextmenus }) => {
+export interface ElementProps {
+  elementInfo: PPTTableElement;
+  selectElement: (
+    e: MouseEvent | TouchEvent,
+    element: PPTTableElement,
+    canMove?: boolean
+  ) => void;
+  contextmenus: () => ContextmenuItem[] | null;
+}
+
+const TableElement: React.FC<ElementProps> = ({
+  elementInfo,
+  selectElement,
+  contextmenus,
+}) => {
   const element = elementInfo as PPTTableElement
-  const { canvasScale, handleElementId, isScaling, setDisableHotkeysState, setSelectedTableCells } = useMainStore()
+  const {
+    canvasScale,
+    handleElementId,
+    isScaling,
+    setDisableHotkeysState,
+    setSelectedTableCells,
+  } = useMainStore()
   const { updateElement } = useSlidesStore()
   const { addHistorySnapshot } = useHistorySnapshot()
 
   const elementRef = useRef<HTMLDivElement>(null)
+  const contentRef = useRef<HTMLDivElement>(null)
   const [editable, setEditable] = useState(false)
   const realHeightCache = useRef(-1)
 
-  const handleSelectElement = (e: React.MouseEvent | React.TouchEvent, canMove = true) => {
+  const handleSelectElement = (
+    e: React.MouseEvent | React.TouchEvent,
+    canMove = true
+  ) => {
     e.stopPropagation()
-    selectElement?.(e, element, canMove)
+    selectElement?.(e.nativeEvent, element, canMove)
   }
 
   // Handle editable state change and hotkeys disabling
@@ -50,22 +75,25 @@ const TableElement: React.FC<ElementProps> = ({ elementInfo, selectElement, cont
     }
   }, [isScaling, handleElementId, element.id, updateElement])
 
-  const updateTableElementHeight = useCallback((entries: ResizeObserverEntry[]) => {
-    const contentRect = entries[0].contentRect
-    if (!elementRef.current) return
+  const updateTableElementHeight = useCallback(
+    (entries: ResizeObserverEntry[]) => {
+      const contentRect = entries[0].contentRect
+      if (!elementRef.current) return
 
-    const realHeight = contentRect.height
+      const realHeight = contentRect.height
 
-    if (element.height !== realHeight) {
-      if (!isScaling) {
-        updateElement({
-          id: element.id,
-          props: { height: realHeight },
-        })
+      if (element.height !== realHeight) {
+        if (!isScaling) {
+          updateElement({
+            id: element.id,
+            props: { height: realHeight },
+          })
+        }
+        else realHeightCache.current = realHeight
       }
-      else realHeightCache.current = realHeight
-    }
-  }, [element.height, element.id, isScaling, updateElement])
+    },
+    [element.height, element.id, isScaling, updateElement]
+  )
 
   useEffect(() => {
     const resizeObserver = new ResizeObserver(updateTableElementHeight)
@@ -78,7 +106,7 @@ const TableElement: React.FC<ElementProps> = ({ elementInfo, selectElement, cont
 
   const updateTableCells = (data: TableCell[][]) => {
     updateElement({
-      id: element.id, 
+      id: element.id,
       props: { data },
     })
     addHistorySnapshot()
@@ -86,10 +114,10 @@ const TableElement: React.FC<ElementProps> = ({ elementInfo, selectElement, cont
 
   const updateColWidths = (widths: number[]) => {
     const width = widths.reduce((a, b) => a + b)
-    const colWidths = widths.map(item => item / width)
+    const colWidths = widths.map((item) => item / width)
 
     updateElement({
-      id: element.id, 
+      id: element.id,
       props: { width, colWidths },
     })
     addHistorySnapshot()
@@ -100,8 +128,13 @@ const TableElement: React.FC<ElementProps> = ({ elementInfo, selectElement, cont
     setTimeout(() => setSelectedTableCells(cells), 0)
   }
 
+  /**
+   * 绑定右键菜单到内容容器
+   */
+  useContextMenu(contentRef, () => contextmenus?.() || [])
+
   return (
-    <div 
+    <div
       className="editable-element-table"
       ref={elementRef}
       style={{
@@ -114,11 +147,8 @@ const TableElement: React.FC<ElementProps> = ({ elementInfo, selectElement, cont
         className="rotate-wrapper"
         style={{ transform: `rotate(${element.rotate}deg)` }}
       >
-        <div 
-          className="element-content" 
-          // v-contextmenu="contextmenus"
-        >
-          <EditableTable 
+        <div ref={contentRef} className="element-content">
+          <EditableTable
             data={element.data}
             width={element.width}
             cellMinHeight={element.cellMinHeight}
@@ -130,19 +160,18 @@ const TableElement: React.FC<ElementProps> = ({ elementInfo, selectElement, cont
             onChangeColWidths={updateColWidths}
             onChangeSelectedCells={updateSelectedCells}
             onMouseDown={(e) => e.stopPropagation()}
-            contextmenus={(el) => []} // TODO: Implement context menus
           />
           {!editable && (
-            <div 
-              className="table-mask" 
+            <div
+              className="table-mask"
               onDoubleClick={startEdit}
               onMouseDown={handleSelectElement}
               onTouchStart={handleSelectElement}
             >
               {handleElementId === element.id && (
-                <div 
-                  className="mask-tip" 
-                  style={{ transform: `scale(${ 1 / canvasScale })` }}
+                <div
+                  className="mask-tip"
+                  style={{ transform: `scale(${1 / canvasScale})` }}
                 >
                   双击编辑
                 </div>

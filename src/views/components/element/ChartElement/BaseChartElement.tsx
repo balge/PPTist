@@ -5,12 +5,12 @@ import Chart from './Chart'
 import './BaseChartElement.scss'
 
 interface BaseChartElementProps {
-  elementInfo: PPTChartElement
+  elementInfo: PPTChartElement;
 }
 
 const BaseChartElement: React.FC<BaseChartElementProps> = ({ elementInfo }) => {
   return (
-    <div 
+    <div
       className="base-element-chart"
       style={{
         top: elementInfo.top + 'px',
@@ -23,7 +23,7 @@ const BaseChartElement: React.FC<BaseChartElementProps> = ({ elementInfo }) => {
         className="rotate-wrapper"
         style={{ transform: `rotate(${elementInfo.rotate}deg)` }}
       >
-        <div 
+        <div
           className="element-content"
           style={{ backgroundColor: elementInfo.fill }}
         >

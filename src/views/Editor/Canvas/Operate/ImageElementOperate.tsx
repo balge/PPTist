@@ -33,7 +33,7 @@ const ImageElementOperate: React.FC<ImageElementOperateProps> = ({
   const { resizeHandlers, borderLines } = useCommonOperate(scaleWidth, scaleHeight)
 
   return (
-    <div className={clsx("image-element-operate", { 'cliping': isCliping })}>
+    <div className={clsx('image-element-operate', { 'cliping': isCliping })}>
       {borderLines.map(line => (
         <BorderLine 
           key={line.type} 

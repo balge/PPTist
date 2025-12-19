@@ -1,50 +1,49 @@
 import React, { useMemo } from 'react'
 import { ElementTypes, type PPTElement } from '@/types/slides'
-import {
-  ImageElement,
-  TextElement,
-  ShapeElement,
-  PlaceholderElement,
-} from '@/views/components/element'
+
+import clsx from 'clsx'
+import BaseImageElement from '../element/ImageElement/BaseImageElement'
+import BaseTextElement from '../element/TextElement/BaseTextElement'
+import BaseShapeElement from '../element/ShapeElement/BaseShapeElement'
+import BaseLineElement from '../element/LineElement/BaseLineElement'
+import BaseChartElement from '../element/ChartElement/BaseChartElement'
+import BaseTableElement from '../element/TableElement/BaseTableElement'
+import BaseLatexElement from '../element/LatexElement/BaseLatexElement'
+import BaseVideoElement from '../element/VideoElement/BaseVideoElement'
+import BaseAudioElement from '../element/AudioElement/BaseAudioElement'
 
 interface ThumbnailElementProps {
-  elementInfo: PPTElement
-  elementIndex: number
+  elementInfo: PPTElement;
+  elementIndex: number;
 }
 
-const ThumbnailElement: React.FC<ThumbnailElementProps> = ({ elementInfo, elementIndex }) => {
+const ThumbnailElement: React.FC<ThumbnailElementProps> = ({
+  elementInfo,
+  elementIndex,
+}) => {
   const CurrentElementComponent = useMemo(() => {
     const elementTypeMap = {
-      [ElementTypes.IMAGE]: ImageElement,
-      [ElementTypes.TEXT]: TextElement,
-      [ElementTypes.SHAPE]: ShapeElement,
-      [ElementTypes.LINE]: PlaceholderElement,
-      [ElementTypes.CHART]: PlaceholderElement,
-      [ElementTypes.TABLE]: PlaceholderElement,
-      [ElementTypes.LATEX]: PlaceholderElement,
-      [ElementTypes.VIDEO]: PlaceholderElement,
-      [ElementTypes.AUDIO]: PlaceholderElement,
+      [ElementTypes.IMAGE]: BaseImageElement,
+      [ElementTypes.TEXT]: BaseTextElement,
+      [ElementTypes.SHAPE]: BaseShapeElement,
+      [ElementTypes.LINE]: BaseLineElement,
+      [ElementTypes.CHART]: BaseChartElement,
+      [ElementTypes.TABLE]: BaseTableElement,
+      [ElementTypes.LATEX]: BaseLatexElement,
+      [ElementTypes.VIDEO]: BaseVideoElement,
+      [ElementTypes.AUDIO]: BaseAudioElement,
     }
-    return elementTypeMap[elementInfo.type] || PlaceholderElement
+    return elementTypeMap[elementInfo.type] || null
   }, [elementInfo.type])
-
-  const rotate = 'rotate' in elementInfo ? elementInfo.rotate : 0
-  const height = 'height' in elementInfo ? elementInfo.height : 0
 
   return (
     <div
-      className="thumbnail-element"
+      className={clsx('thumbnail-element', `base-element-${elementInfo.id}`)}
       style={{
-        position: 'absolute',
-        left: elementInfo.left,
-        top: elementInfo.top,
-        width: elementInfo.width,
-        height: height,
-        transform: `rotate(${rotate}deg)`,
         zIndex: elementIndex,
-        pointerEvents: 'none', // 缩略图中的元素不需要交互
       }}
     >
+      {/* @ts-ignore */}
       <CurrentElementComponent elementInfo={elementInfo} />
     </div>
   )

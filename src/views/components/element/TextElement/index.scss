@@ -3,7 +3,6 @@
 
 .editable-element-text {
   position: absolute;
-  pointer-events: auto;
 }
 .rotate-wrapper {
   width: 100%;
@@ -20,7 +19,7 @@
     position: relative;
   }
 
-  a {
+  ::v-deep(a) {
     cursor: text;
   }
 }

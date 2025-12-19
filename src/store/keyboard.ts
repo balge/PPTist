@@ -1,4 +1,4 @@
-import { create } from "zustand";
+import { create } from 'zustand'
 
 export interface KeyboardState {
   ctrlKeyState: boolean;
@@ -31,8 +31,8 @@ export const useKeyboardStore = create<KeyboardState>((set) => ({
       ctrlOrShiftKeyActive: state.ctrlKeyState || active,
     })),
   setSpaceKeyState: (active: boolean) => set({ spaceKeyState: active }),
-}));
+}))
 
 // Helper hook for getter (optional, if components prefer this)
 export const useCtrlOrShiftKeyActive = () =>
-  useKeyboardStore((state) => state.ctrlOrShiftKeyActive);
+  useKeyboardStore((state) => state.ctrlOrShiftKeyActive)

@@ -1,15 +1,15 @@
-import { customAlphabet } from "nanoid";
-import { create } from "zustand";
+import { customAlphabet } from 'nanoid'
+import { create } from 'zustand'
 import type {
   CreatingElement,
   ShapeFormatPainter,
   TextFormatPainter,
-} from "@/types/edit";
+} from '@/types/edit'
 import {
   type TextAttrs,
   defaultRichTextAttrs,
-} from "@/utils/prosemirror/utils";
-import { useSlidesStore } from "./slides";
+} from '@/utils/prosemirror/utils'
+import { useSlidesStore } from './slides'
 
 export interface MainState {
   activeElementIdList: string[];
@@ -64,14 +64,14 @@ export interface MainState {
 }
 
 const nanoid = customAlphabet(
-  "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
-);
-export const databaseId = nanoid(10);
+  '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
+)
+export const databaseId = nanoid(10)
 
 export const useMainStore = create<MainState>((set) => ({
   activeElementIdList: [], // 被选中的元素ID集合，包含 handleElementId
-  handleElementId: "", // 正在操作的元素ID
-  activeGroupElementId: "", // 组合元素成员中，被选中可独立操作的元素ID
+  handleElementId: '', // 正在操作的元素ID
+  activeGroupElementId: '', // 组合元素成员中，被选中可独立操作的元素ID
   hiddenElementIdList: [], // 被隐藏的元素ID集合
   canvasPercentage: 90, // 画布可视区域百分比
   canvasScale: 1, // 画布缩放比例（基于宽度{{slidesStore.viewportSize}}像素）
@@ -84,7 +84,7 @@ export const useMainStore = create<MainState>((set) => ({
   showRuler: false, // 显示标尺
   creatingElement: null, // 正在插入的元素信息，需要通过绘制插入的元素（文字、形状、线条）
   creatingCustomShape: false, // 正在绘制任意多边形
-  clipingImageElementId: "", // 当前正在裁剪的图片ID
+  clipingImageElementId: '', // 当前正在裁剪的图片ID
   richTextAttrs: defaultRichTextAttrs, // 富文本状态
   selectedTableCells: [], // 选中的表格单元格
   isScaling: false, // 正在进行元素缩放
@@ -96,8 +96,8 @@ export const useMainStore = create<MainState>((set) => ({
   setActiveElementIdList: (activeElementIdList: string[]) =>
     set(() => {
       const handleElementId =
-        activeElementIdList.length === 1 ? activeElementIdList[0] : "";
-      return { activeElementIdList, handleElementId };
+        activeElementIdList.length === 1 ? activeElementIdList[0] : ''
+      return { activeElementIdList, handleElementId }
     }),
 
   setHandleElementId: (handleElementId: string) => set({ handleElementId }),
@@ -152,28 +152,28 @@ export const useMainStore = create<MainState>((set) => ({
 
   setShapeFormatPainter: (shapeFormatPainter: ShapeFormatPainter | null) =>
     set({ shapeFormatPainter }),
-}));
+}))
 
 // Helper hooks for getters
 export const useActiveElementList = () => {
   const activeElementIdList = useMainStore(
     (state) => state.activeElementIdList
-  );
-  const currentSlide = useSlidesStore((state) => state.currentSlide);
+  )
+  const currentSlide = useSlidesStore((state) => state.currentSlide)
 
-  if (!currentSlide || !currentSlide.elements) return [];
+  if (!currentSlide || !currentSlide.elements) return []
   return currentSlide.elements.filter((element) =>
     activeElementIdList.includes(element.id)
-  );
-};
+  )
+}
 
 export const useHandleElement = () => {
-  const handleElementId = useMainStore((state) => state.handleElementId);
-  const currentSlide = useSlidesStore((state) => state.currentSlide);
+  const handleElementId = useMainStore((state) => state.handleElementId)
+  const currentSlide = useSlidesStore((state) => state.currentSlide)
 
-  if (!currentSlide || !currentSlide.elements) return null;
+  if (!currentSlide || !currentSlide.elements) return null
   return (
     currentSlide.elements.find((element) => handleElementId === element.id) ||
     null
-  );
-};
+  )
+}

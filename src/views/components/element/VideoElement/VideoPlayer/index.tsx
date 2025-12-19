@@ -1,22 +1,28 @@
-import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useMemo,
+  useCallback,
+} from 'react'
 import clsx from 'clsx'
 import useMSE from './useMSE'
 import './index.scss'
-
-// Simple Icons
-const IconPlayOne = () => <svg width="1em" height="1em" viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth="4" strokeLinejoin="round"><path d="M15 24V11.8756L25.5 17.9378L36 24L25.5 30.0622L15 36.1244V24Z" fill="currentColor" stroke="none"/></svg>
-const IconPause = () => <svg width="1em" height="1em" viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth="4" strokeLinejoin="round"><path d="M16 12V36" strokeLinecap="round"/><path d="M32 12V36" strokeLinecap="round"/></svg>
-const IconVolumeMute = () => <svg width="1em" height="1em" viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth="4" strokeLinejoin="round"><path d="M24 6V42C17 42 11.7985 32.8391 11.7985 32.8391H6C4.89543 32.8391 4 31.9437 4 30.8391V17.1609C4 16.0563 4.89543 15.1609 6 15.1609H11.7985C11.7985 15.1609 17 6 24 6Z" fill="currentColor" stroke="none"/><path d="M32 15L44 33" strokeLinecap="round"/><path d="M44 15L32 33" strokeLinecap="round"/></svg>
-const IconVolumeNotice = () => <svg width="1em" height="1em" viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth="4" strokeLinejoin="round"><path d="M24 6V42C17 42 11.7985 32.8391 11.7985 32.8391H6C4.89543 32.8391 4 31.9437 4 30.8391V17.1609C4 16.0563 4.89543 15.1609 6 15.1609H11.7985C11.7985 15.1609 17 6 24 6Z" fill="currentColor" stroke="none"/><path d="M32 24C32 18.4772 36.4772 14 42 14" strokeLinecap="round"/><path d="M32 24C32 29.5228 36.4772 34 42 34" strokeLinecap="round"/></svg>
-const IconVolumeSmall = () => <svg width="1em" height="1em" viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth="4" strokeLinejoin="round"><path d="M24 6V42C17 42 11.7985 32.8391 11.7985 32.8391H6C4.89543 32.8391 4 31.9437 4 30.8391V17.1609C4 16.0563 4.89543 15.1609 6 15.1609H11.7985C11.7985 15.1609 17 6 24 6Z" fill="currentColor" stroke="none"/><path d="M32 24C32 19.5817 34.5817 17 39 17" strokeLinecap="round"/><path d="M32 24C32 28.4183 34.5817 31 39 31" strokeLinecap="round"/></svg>
+import {
+  Pause,
+  PlayOne,
+  VolumeMute,
+  VolumeNotice,
+  VolumeSmall,
+} from '@icon-park/react'
 
 interface VideoPlayerProps {
-  width: number
-  height: number
-  src: string
-  poster?: string
-  autoplay?: boolean
-  scale?: number
+  width: number;
+  height: number;
+  src: string;
+  poster?: string;
+  autoplay?: boolean;
+  scale?: number;
 }
 
 const VideoPlayer: React.FC<VideoPlayerProps> = ({
@@ -61,8 +67,14 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
   const ptime = useMemo(() => secondToTime(currentTime), [currentTime])
   const dtime = useMemo(() => secondToTime(duration), [duration])
-  const playedBarWidth = useMemo(() => (duration ? currentTime / duration * 100 : 0) + '%', [currentTime, duration])
-  const loadedBarWidth = useMemo(() => (duration ? loaded / duration * 100 : 0) + '%', [loaded, duration])
+  const playedBarWidth = useMemo(
+    () => (duration ? (currentTime / duration) * 100 : 0) + '%',
+    [currentTime, duration]
+  )
+  const loadedBarWidth = useMemo(
+    () => (duration ? (loaded / duration) * 100 : 0) + '%',
+    [loaded, duration]
+  )
   const volumeBarWidth = useMemo(() => volume * 100 + '%', [volume])
 
   const speedOptions = [
@@ -75,10 +87,12 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   ]
 
   const autoHideControllerTimer = useRef<NodeJS.Timeout | null>(null)
-  
+
   const autoHideController = useCallback(() => {
     setHideController(false)
-    if (autoHideControllerTimer.current) clearTimeout(autoHideControllerTimer.current)
+    if (autoHideControllerTimer.current) {
+      clearTimeout(autoHideControllerTimer.current)
+    }
     autoHideControllerTimer.current = setTimeout(() => {
       if (videoRef.current && !videoRef.current.paused) setHideController(true)
     }, 3000)
@@ -101,7 +115,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   }
 
   const toggle = () => {
-    if (paused) play() 
+    if (paused) play()
     else pause()
   }
 
@@ -119,7 +133,9 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     percentage = Math.min(percentage, 1)
     videoRef.current.volume = percentage
     setVolume(percentage)
-    if (videoRef.current.muted && percentage !== 0) videoRef.current.muted = false
+    if (videoRef.current.muted && percentage !== 0) {
+      videoRef.current.muted = false
+    }
   }
 
   const speed = (rate: number) => {
@@ -132,7 +148,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     if (videoRef.current.muted) {
       videoRef.current.muted = false
       changeVolume(0.5)
-    } else {
+    }
+    else {
       videoRef.current.muted = true
       changeVolume(0)
     }
@@ -143,8 +160,10 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   }
 
   // Event Handlers for Video Element
-  const handleDurationchange = () => setDuration(videoRef.current?.duration || 0)
-  const handleTimeupdate = () => setCurrentTime(videoRef.current?.currentTime || 0)
+  const handleDurationchange = () =>
+    setDuration(videoRef.current?.duration || 0)
+  const handleTimeupdate = () =>
+    setCurrentTime(videoRef.current?.currentTime || 0)
   const handleEnded = () => {
     if (!loop) pause()
     else {
@@ -154,32 +173,43 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   }
   const handleProgress = () => {
     if (videoRef.current && videoRef.current.buffered.length) {
-      setLoaded(videoRef.current.buffered.end(videoRef.current.buffered.length - 1))
+      setLoaded(
+        videoRef.current.buffered.end(videoRef.current.buffered.length - 1)
+      )
     }
   }
   const handleError = () => setLoadError(true)
 
   // Drag handlers for Play Bar
-  const getBoundingClientRectViewLeft = (element: HTMLElement) => element.getBoundingClientRect().left
+  const getBoundingClientRectViewLeft = (element: HTMLElement) =>
+    element.getBoundingClientRect().left
 
-  const thumbMove = useCallback((e: MouseEvent | TouchEvent) => {
-    if (!videoRef.current || !playBarWrapRef.current) return
-    const clientX = 'clientX' in e ? e.clientX : e.changedTouches[0].clientX
-    let percentage = (clientX - getBoundingClientRectViewLeft(playBarWrapRef.current)) / playBarWrapRef.current.clientWidth
-    percentage = Math.max(percentage, 0)
-    percentage = Math.min(percentage, 1)
-    const time = percentage * duration
-    videoRef.current.currentTime = time
-    setCurrentTime(time)
-  }, [duration])
+  const thumbMove = useCallback(
+    (e: MouseEvent | TouchEvent) => {
+      if (!videoRef.current || !playBarWrapRef.current) return
+      const clientX = 'clientX' in e ? e.clientX : e.changedTouches[0].clientX
+      let percentage =
+        (clientX - getBoundingClientRectViewLeft(playBarWrapRef.current)) /
+        playBarWrapRef.current.clientWidth
+      percentage = Math.max(percentage, 0)
+      percentage = Math.min(percentage, 1)
+      const time = percentage * duration
+      videoRef.current.currentTime = time
+      setCurrentTime(time)
+    },
+    [duration]
+  )
 
-  const thumbUp = useCallback((e: MouseEvent | TouchEvent) => {
-    thumbMove(e)
-    document.removeEventListener('mousemove', thumbMove)
-    document.removeEventListener('touchmove', thumbMove)
-    document.removeEventListener('mouseup', thumbUp)
-    document.removeEventListener('touchend', thumbUp)
-  }, [thumbMove])
+  const thumbUp = useCallback(
+    (e: MouseEvent | TouchEvent) => {
+      thumbMove(e)
+      document.removeEventListener('mousemove', thumbMove)
+      document.removeEventListener('touchmove', thumbMove)
+      document.removeEventListener('mouseup', thumbUp)
+      document.removeEventListener('touchend', thumbUp)
+    },
+    [thumbMove]
+  )
 
   const handleMousedownPlayBar = () => {
     document.addEventListener('mousemove', thumbMove)
@@ -205,7 +235,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const volumeMove = useCallback((e: MouseEvent | TouchEvent) => {
     if (!volumeBarRef.current) return
     const clientX = 'clientX' in e ? e.clientX : e.changedTouches[0].clientX
-    const percentage = (clientX - getBoundingClientRectViewLeft(volumeBarRef.current)) / 45
+    const percentage =
+      (clientX - getBoundingClientRectViewLeft(volumeBarRef.current)) / 45
     changeVolume(percentage)
   }, [])
 
@@ -225,7 +256,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
   const handleClickVolumeBar = (e: React.MouseEvent) => {
     if (!volumeBarRef.current) return
-    const percentage = (e.clientX - getBoundingClientRectViewLeft(volumeBarRef.current)) / 45
+    const percentage =
+      (e.clientX - getBoundingClientRectViewLeft(volumeBarRef.current)) / 45
     changeVolume(percentage)
   }
 
@@ -238,17 +270,25 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     const handleLoadedMetadata = () => {
       videoRef.current!.requestVideoFrameCallback(() => {
         if (videoRef.current && bgCanvasRef.current) {
-            ctx.drawImage(videoRef.current, 0, 0, bgCanvasRef.current.width, bgCanvasRef.current.height)
+          ctx.drawImage(
+            videoRef.current,
+            0,
+            0,
+            bgCanvasRef.current.width,
+            bgCanvasRef.current.height
+          )
         }
       })
     }
-    
-    videoRef.current.addEventListener('loadedmetadata', handleLoadedMetadata, { once: true })
+
+    videoRef.current.addEventListener('loadedmetadata', handleLoadedMetadata, {
+      once: true,
+    })
   }, [])
 
   return (
-    <div 
-      className={clsx('video-player', { 'hide-controller': hideController })} 
+    <div
+      className={clsx('video-player', { 'hide-controller': hideController })}
       style={{
         width: width * scale + 'px',
         height: height * scale + 'px',
@@ -273,16 +313,21 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
           onTimeUpdate={handleTimeupdate}
           onEnded={handleEnded}
           onProgress={handleProgress}
-          onPlay={() => { autoHideController(); setPaused(false) }}
+          onPlay={() => {
+            autoHideController()
+            setPaused(false)
+          }}
           onPause={() => autoHideController()}
           onError={handleError}
         ></video>
         <div className="bezel">
-          <span 
-            className={clsx('bezel-icon', { 'bezel-transition': bezelTransition })} 
+          <span
+            className={clsx('bezel-icon', {
+              'bezel-transition': bezelTransition,
+            })}
             onAnimationEnd={() => setBezelTransition(false)}
           >
-            {paused ? <IconPause /> : <IconPlayOne />}
+            {paused ? <Pause /> : <PlayOne />}
           </span>
         </div>
       </div>
@@ -290,48 +335,94 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       <div className="controller-mask"></div>
       <div className="controller">
         <div className="icons icons-left">
-          <div className="icon play-icon" onClick={(e) => { e.stopPropagation(); toggle() }}>
+          <div
+            className="icon play-icon"
+            onClick={(e) => {
+              e.stopPropagation()
+              toggle()
+            }}
+          >
             <span className="icon-content">
-              {paused ? <IconPlayOne /> : <IconPause />}
+              {paused ? <PlayOne /> : <Pause />}
             </span>
           </div>
           <div className="volume">
-            <div className="icon volume-icon" onClick={(e) => { e.stopPropagation(); toggleVolume() }}>
+            <div
+              className="icon volume-icon"
+              onClick={(e) => {
+                e.stopPropagation()
+                toggleVolume()
+              }}
+            >
               <span className="icon-content">
-                {volume === 0 ? <IconVolumeMute /> : volume === 1 ? <IconVolumeNotice /> : <IconVolumeSmall />}
+                {volume === 0 ? (
+                  <VolumeMute />
+                ) : volume === 1 ? (
+                  <VolumeNotice />
+                ) : (
+                  <VolumeSmall />
+                )}
               </span>
             </div>
             <div
               className="volume-bar-wrap"
-              onMouseDown={(e) => { e.stopPropagation(); handleMousedownVolumeBar() }}
-              onTouchStart={(e) => { e.stopPropagation(); handleMousedownVolumeBar() }}
-              onClick={(e) => { e.stopPropagation(); handleClickVolumeBar(e) }}
+              onMouseDown={(e) => {
+                e.stopPropagation()
+                handleMousedownVolumeBar()
+              }}
+              onTouchStart={(e) => {
+                e.stopPropagation()
+                handleMousedownVolumeBar()
+              }}
+              onClick={(e) => {
+                e.stopPropagation()
+                handleClickVolumeBar(e)
+              }}
             >
               <div className="volume-bar" ref={volumeBarRef}>
-                <div className="volume-bar-inner" style={{ width: volumeBarWidth }}>
+                <div
+                  className="volume-bar-inner"
+                  style={{ width: volumeBarWidth }}
+                >
                   <span className="thumb"></span>
                 </div>
               </div>
             </div>
           </div>
           <span className="time">
-            <span className="ptime">{ptime}</span> / <span className="dtime">{dtime}</span>
+            <span className="ptime">{ptime}</span> /{' '}
+            <span className="dtime">{dtime}</span>
           </span>
         </div>
 
         <div className="icons icons-right">
           <div className="speed">
-            <div className="icon speed-icon" onMouseLeave={() => setSpeedMenuVisible(false)}>
-              <span className="icon-content" onClick={(e) => { e.stopPropagation(); setSpeedMenuVisible(!speedMenuVisible) }}>
-                {playbackRate === 1 ? '倍速' : (playbackRate + 'x')}
+            <div
+              className="icon speed-icon"
+              onMouseLeave={() => setSpeedMenuVisible(false)}
+            >
+              <span
+                className="icon-content"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setSpeedMenuVisible(!speedMenuVisible)
+                }}
+              >
+                {playbackRate === 1 ? '倍速' : playbackRate + 'x'}
               </span>
               {speedMenuVisible && (
                 <div className="speed-menu">
-                  {speedOptions.map(item => (
-                    <div 
+                  {speedOptions.map((item) => (
+                    <div
                       key={item.label}
-                      className={clsx('speed-menu-item', { 'active': item.value === playbackRate })}
-                      onClick={(e) => { e.stopPropagation(); speed(item.value); setSpeedMenuVisible(false) }}
+                      className={clsx('speed-menu-item', {
+                        active: item.value === playbackRate,
+                      })}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        speed(item.value)
+                        setSpeedMenuVisible(false)
+                      }}
                     >
                       {item.label}
                     </div>
@@ -340,25 +431,37 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
               )}
             </div>
           </div>
-          <div className="loop" onClick={(e) => { e.stopPropagation(); toggleLoop() }}>
-            <div className={clsx('icon loop-icon', { 'active': loop })}>
+          <div
+            className="loop"
+            onClick={(e) => {
+              e.stopPropagation()
+              toggleLoop()
+            }}
+          >
+            <div className={clsx('icon loop-icon', { active: loop })}>
               <span className="icon-content">循环{loop ? '开' : '关'}</span>
             </div>
           </div>
         </div>
 
-        <div 
+        <div
           className="bar-wrap"
           ref={playBarWrapRef}
-          onMouseDown={(e) => { e.stopPropagation(); handleMousedownPlayBar() }}
-          onTouchStart={(e) => { e.stopPropagation(); handleMousedownPlayBar() }}
+          onMouseDown={(e) => {
+            e.stopPropagation()
+            handleMousedownPlayBar()
+          }}
+          onTouchStart={(e) => {
+            e.stopPropagation()
+            handleMousedownPlayBar()
+          }}
           onMouseMove={handleMousemovePlayBar}
           onMouseEnter={() => setPlayBarTimeVisible(true)}
           onMouseLeave={() => setPlayBarTimeVisible(false)}
           onClick={(e) => e.stopPropagation()}
         >
-          <div 
-            className={clsx('bar-time', { 'hidden': !playBarTimeVisible })} 
+          <div
+            className={clsx('bar-time', { hidden: !playBarTimeVisible })}
             style={{ left: playBarTimeLeft }}
           >
             {playBarTime}
