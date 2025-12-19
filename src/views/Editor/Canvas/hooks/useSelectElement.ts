@@ -4,15 +4,26 @@ import type { PPTElement } from '@/types/slides'
 
 export default (
   elementList: PPTElement[],
-  moveElement: (e: MouseEvent | TouchEvent, element: PPTElement) => void,
+  moveElement: (e: MouseEvent | TouchEvent, element: PPTElement) => void
 ) => {
   const mainStore = useMainStore()
 
   // 选中元素
   // startMove 表示是否需要再选中操作后进入到开始移动的状态
-  const selectElement = (e: MouseEvent | TouchEvent, element: PPTElement, startMove = true) => {
+  const selectElement = (
+    e: MouseEvent | TouchEvent,
+    element: PPTElement,
+    startMove = true
+  ) => {
+    if (!e) return
+
     // Get latest state inside the function
-    const { activeElementIdList, activeGroupElementId, handleElementId, editorAreaFocus } = useMainStore.getState()
+    const {
+      activeElementIdList,
+      activeGroupElementId,
+      handleElementId,
+      editorAreaFocus,
+    } = useMainStore.getState()
     const { ctrlOrShiftKeyActive } = useKeyboardStore.getState()
 
     if (!editorAreaFocus) mainStore.setEditorareaFocus(true)
@@ -27,7 +38,7 @@ export default (
         newActiveIdList = [...activeElementIdList, element.id]
       }
       else newActiveIdList = [element.id]
-      
+
       if (element.groupId) {
         const groupMembersId: string[] = []
         elementList.forEach((el: PPTElement) => {
@@ -51,10 +62,12 @@ export default (
         elementList.forEach((el: PPTElement) => {
           if (el.groupId === element.groupId) groupMembersId.push(el.id)
         })
-        newActiveIdList = activeElementIdList.filter(id => !groupMembersId.includes(id))
+        newActiveIdList = activeElementIdList.filter(
+          (id) => !groupMembersId.includes(id)
+        )
       }
       else {
-        newActiveIdList = activeElementIdList.filter(id => id !== element.id)
+        newActiveIdList = activeElementIdList.filter((id) => id !== element.id)
       }
 
       if (newActiveIdList.length > 0) {
@@ -69,17 +82,32 @@ export default (
 
     // 如果目标元素已被选中，同时也是当前操作元素，那么当目标元素在该状态下再次被点击时，将被设置为多选元素中的激活成员
     else if (activeGroupElementId !== element.id) {
-      const startPageX = e instanceof MouseEvent ? e.pageX : e.changedTouches[0].pageX
-      const startPageY = e instanceof MouseEvent ? e.pageY : e.changedTouches[0].pageY
+      let startPageX = 0
+      let startPageY = 0
 
-      const target = e.target as HTMLElement
-      target.onmouseup = (e: MouseEvent) => {
-        const currentPageX = e.pageX
-        const currentPageY = e.pageY
+      if (e instanceof MouseEvent) {
+        startPageX = e.pageX
+        startPageY = e.pageY
+      }
+      else if (
+        'changedTouches' in e &&
+        e.changedTouches &&
+        e.changedTouches.length > 0
+      ) {
+        startPageX = e.changedTouches[0].pageX
+        startPageY = e.changedTouches[0].pageY
+      }
 
-        if (startPageX === currentPageX && startPageY === currentPageY) {
-          mainStore.setActiveGroupElementId(element.id)
-          target.onmouseup = null
+      if (startPageX || startPageY) {
+        const target = e.target as HTMLElement
+        target.onmouseup = (e: MouseEvent) => {
+          const currentPageX = e.pageX
+          const currentPageY = e.pageY
+
+          if (startPageX === currentPageX && startPageY === currentPageY) {
+            mainStore.setActiveGroupElementId(element.id)
+            target.onmouseup = null
+          }
         }
       }
     }

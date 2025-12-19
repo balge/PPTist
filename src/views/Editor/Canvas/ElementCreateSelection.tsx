@@ -1,4 +1,4 @@
-import React, { useRef, useState, useMemo, useEffect, useCallback } from 'react'
+import React, { useRef, useState, useMemo, useEffect } from 'react'
 import { useMainStore, useKeyboardStore } from '@/store'
 import type { CreateElementSelectionData } from '@/types/edit'
 import clsx from 'clsx'
