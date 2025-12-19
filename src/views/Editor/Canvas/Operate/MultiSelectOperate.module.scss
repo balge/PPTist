@@ -1,0 +1,25 @@
+@import '@/assets/styles/variable.scss';
+@import '@/assets/styles/mixin.scss';
+
+.multiSelectOperate {
+  position: absolute;
+  pointer-events: none;
+
+  .borderLine {
+    border: 0 dashed $themeColor;
+    @include absolute-0();
+
+    &.top {
+      border-top-width: 1px;
+    }
+    &.bottom {
+      border-bottom-width: 1px;
+    }
+    &.left {
+      border-left-width: 1px;
+    }
+    &.right {
+      border-right-width: 1px;
+    }
+  }
+}

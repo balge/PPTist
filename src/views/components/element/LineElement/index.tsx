@@ -4,7 +4,7 @@ import { getLineElementPath } from '@/utils/element'
 import useElementShadow from '@/views/components/element/hooks/useElementShadow'
 
 import LinePointMarker from './LinePointMarker'
-import './index.scss'
+import styles from './index.module.scss'
 import type { ContextmenuItem } from '@/components/Contextmenu/types'
 import useContextMenu from '@/hooks/useContextMenu'
 
@@ -72,14 +72,14 @@ const LineElement: React.FC<ElementProps> = ({
 
   return (
     <div
-      className="editable-element-shape"
+      className={styles.editableElementLine}
       style={{
         top: element.top + 'px',
         left: element.left + 'px',
       }}
     >
       <div
-        className="element-content"
+        className={styles.elementContent}
         style={{ filter: shadowStyle ? `drop-shadow(${shadowStyle})` : '' }}
         onMouseDown={handleSelectElement}
         onTouchStart={handleSelectElement}
@@ -106,7 +106,7 @@ const LineElement: React.FC<ElementProps> = ({
             )}
           </defs>
           <path
-            className="line-point"
+            className={styles.linePoint}
             d={path}
             stroke={element.color}
             strokeWidth={element.width}
@@ -118,7 +118,7 @@ const LineElement: React.FC<ElementProps> = ({
             markerEnd={endPoint ? `url(#${element.id}-${endPoint}-end)` : ''}
           ></path>
           <path
-            className="line-path"
+            className={styles.linePath}
             d={path}
             stroke="transparent"
             strokeWidth="20"

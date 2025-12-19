@@ -12,7 +12,7 @@ import { LegendComponent } from 'echarts/components'
 import { SVGRenderer } from 'echarts/renderers'
 import type { ChartData, ChartOptions, ChartType } from '@/types/slides'
 import { getChartOption } from './chartOption'
-import './Chart.scss'
+import styles from './Chart.module.scss'
 
 echarts.use([
   BarChart,
@@ -103,7 +103,7 @@ const Chart: React.FC<ChartProps> = ({
     updateOption()
   }, [updateOption])
 
-  return <div className="chart" ref={chartRef}></div>
+  return <div className={styles.chart} ref={chartRef}></div>
 }
 
 export default Chart

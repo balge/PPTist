@@ -3,7 +3,6 @@ import React, {
   useEffect,
   useState,
   useMemo,
-  useCallback,
 } from 'react'
 import clsx from 'clsx'
 import { useMainStore, useSlidesStore } from '@/store'
@@ -16,11 +15,10 @@ import useHistorySnapshot from '@/hooks/useHistorySnapshot'
 
 import GradientDefs from './GradientDefs'
 import PatternDefs from './PatternDefs'
-import type {
-  ProsemirrorEditorRef,
+import ProsemirrorEditor, {
+  type ProsemirrorEditorRef,
 } from '@/views/components/element/ProsemirrorEditor'
-import ProsemirrorEditor from '@/views/components/element/ProsemirrorEditor'
-import './index.scss'
+import styles from './index.module.scss'
 import type { ContextmenuItem } from '@/components/Contextmenu/types'
 import useContextMenu from '@/hooks/useContextMenu'
 
@@ -132,8 +130,8 @@ const ShapeElement: React.FC<ElementProps> = ({
 
   return (
     <div
-      className={clsx('editable-element-shape', {
-        'format-painter': shapeFormatPainter,
+      className={clsx(styles.editableElementShape, {
+        [styles.formatPainter]: shapeFormatPainter,
       })}
       style={{
         top: element.top + 'px',
@@ -143,11 +141,11 @@ const ShapeElement: React.FC<ElementProps> = ({
       }}
     >
       <div
-        className="rotate-wrapper"
+        className={styles.rotateWrapper}
         style={{ transform: `rotate(${element.rotate}deg)` }}
       >
         <div
-          className="element-content"
+          className={styles.elementContent}
           style={{
             opacity: element.opacity,
             filter: shadowStyle ? `drop-shadow(${shadowStyle})` : '',
@@ -183,7 +181,7 @@ const ShapeElement: React.FC<ElementProps> = ({
               }) translate(0,0) matrix(1,0,0,1,0,0)`}
             >
               <path
-                className="shape-path"
+                className={styles.shapePath}
                 vectorEffect="non-scaling-stroke"
                 strokeLinecap="butt"
                 strokeMiterlimit="8"
@@ -197,8 +195,8 @@ const ShapeElement: React.FC<ElementProps> = ({
           </svg>
 
           <div
-            className={clsx('shape-text', text.align, {
-              editable: editable || text.content,
+            className={clsx(styles.shapeText, styles[text.align], {
+              [styles.editable]: editable || text.content,
             })}
           >
             {(editable || text.content) && (

@@ -1,0 +1,66 @@
+@import '@/assets/styles/variable.scss';
+@import '@/assets/styles/mixin.scss';
+
+.thumbnails {
+  border-right: solid 1px $borderColor;
+  background-color: #fff;
+  display: flex;
+  flex-direction: column;
+  user-select: none;
+}
+.thumbnailList {
+  padding: 5px 0;
+  flex: 1;
+  overflow: auto;
+}
+.thumbnailItem {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 5px 0;
+  position: relative;
+
+  .thumbnail {
+    border-radius: $borderRadius;
+    outline: 2px solid rgba($color: $themeColor, $alpha: 0.15);
+  }
+
+  &.active {
+    .label {
+      color: $themeColor;
+    }
+    .thumbnail {
+      outline-color: $themeColor;
+    }
+  }
+  &.selected {
+    .thumbnail {
+      outline-color: $themeColor;
+    }
+    .noteFlag {
+      background-color: $themeColor;
+
+      &::after {
+        border-top-color: $themeColor;
+      }
+    }
+  }
+}
+.label {
+  font-size: 12px;
+  color: #999;
+  width: 20px;
+  cursor: grab;
+
+  &.offsetLeft {
+    position: relative;
+    left: -4px;
+  }
+
+  &:active {
+    cursor: grabbing;
+  }
+}
+.thumbnailContainer {
+  // Container style if needed
+}

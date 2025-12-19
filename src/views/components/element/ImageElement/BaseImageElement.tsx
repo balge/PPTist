@@ -6,7 +6,7 @@ import useClipImage from './useClipImage'
 import useFilter from './useFilter'
 
 import ImageOutline from './ImageOutline'
-import './BaseImageElement.scss'
+import styles from './BaseImageElement.module.scss'
 
 interface BaseImageElementProps {
   elementInfo: PPTImageElement
@@ -20,7 +20,7 @@ const BaseImageElement: React.FC<BaseImageElementProps> = ({ elementInfo }) => {
 
   return (
     <div 
-      className="base-element-image"
+      className={styles.baseElementImage}
       style={{
         top: elementInfo.top + 'px',
         left: elementInfo.left + 'px',
@@ -29,11 +29,11 @@ const BaseImageElement: React.FC<BaseImageElementProps> = ({ elementInfo }) => {
       }}
     >
       <div
-        className="rotate-wrapper"
+        className={styles.rotateWrapper}
         style={{ transform: `rotate(${elementInfo.rotate}deg)` }}
       >
         <div 
-          className="element-content"
+          className={styles.elementContent}
           style={{
             filter: shadowStyle ? `drop-shadow(${shadowStyle})` : '',
             transform: flipStyle,
@@ -41,7 +41,7 @@ const BaseImageElement: React.FC<BaseImageElementProps> = ({ elementInfo }) => {
         >
           <ImageOutline elementInfo={elementInfo} />
 
-          <div className="image-content" style={{ clipPath: clipShape.style }}>
+          <div className={styles.imageContent} style={{ clipPath: clipShape.style }}>
             <img 
               src={elementInfo.src} 
               draggable={false} 
@@ -56,7 +56,7 @@ const BaseImageElement: React.FC<BaseImageElementProps> = ({ elementInfo }) => {
             />
             {elementInfo.colorMask && (
               <div 
-                className="color-mask"
+                className={styles.colorMask}
                 style={{
                   backgroundColor: elementInfo.colorMask,
                 }}

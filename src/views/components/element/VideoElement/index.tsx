@@ -2,7 +2,7 @@ import React, { useRef } from 'react'
 import { useMainStore } from '@/store'
 import type { PPTVideoElement } from '@/types/slides'
 import VideoPlayer from './VideoPlayer'
-import './index.scss'
+import styles from './index.module.scss'
 import useContextMenu from '@/hooks/useContextMenu'
 import type { ContextmenuItem } from '@/components/Contextmenu/types'
 
@@ -40,7 +40,7 @@ const VideoElement: React.FC<ElementProps> = ({
 
   return (
     <div
-      className="editable-element-video"
+      className={styles.editableElementVideo}
       style={{
         top: element.top + 'px',
         left: element.left + 'px',
@@ -49,11 +49,11 @@ const VideoElement: React.FC<ElementProps> = ({
       }}
     >
       <div
-        className="rotate-wrapper"
+        className={styles.rotateWrapper}
         style={{ transform: `rotate(${element.rotate}deg)` }}
       >
         <div
-          className="element-content"
+          className={styles.elementContent}
           ref={contentRef}
           onMouseDown={(e) => handleSelectElement(e, false)}
           onTouchStart={(e) => handleSelectElement(e, false)}
@@ -68,7 +68,7 @@ const VideoElement: React.FC<ElementProps> = ({
           {['t', 'b', 'l', 'r'].map((item) => (
             <div
               key={item}
-              className={`handler-border ${item}`}
+              className={`${styles.handlerBorder} ${styles[item]}`}
               onMouseDown={(e) => handleSelectElement(e)}
               onTouchStart={(e) => handleSelectElement(e)}
             />

@@ -2,7 +2,7 @@ import React, { useRef, useState, useMemo, useEffect, useCallback } from 'react'
 import { useMainStore, useKeyboardStore } from '@/store'
 import type { CreateElementSelectionData } from '@/types/edit'
 import clsx from 'clsx'
-import './ElementCreateSelection.scss'
+import styles from './ElementCreateSelection.module.scss'
 
 interface ElementCreateSelectionProps {
   onCreated: (payload: CreateElementSelectionData) => void
@@ -192,7 +192,7 @@ const ElementCreateSelection: React.FC<ElementCreateSelectionProps> = ({ onCreat
 
   return (
     <div 
-      className="element-create-selection"
+      className={styles.elementCreateSelection}
       ref={selectionRef}
       onMouseDown={handleMouseDown}
       onContextMenu={(e) => {
@@ -201,7 +201,7 @@ const ElementCreateSelection: React.FC<ElementCreateSelectionProps> = ({ onCreat
     >
       {start && end && (
         <div 
-          className={clsx('selection', creatingElement?.type)} 
+          className={clsx(styles.selection, { [styles.line]: creatingElement?.type === 'line' })} 
           style={position}
         >
           {creatingElement?.type === 'line' && lineData && (

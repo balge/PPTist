@@ -3,7 +3,7 @@ import clsx from 'clsx'
 import { useMainStore, useSlidesStore } from '@/store'
 import { fillDigit } from '@/utils/common'
 import ThumbnailSlide from '@/views/components/ThumbnailSlide'
-import './index.scss'
+import styles from './index.module.scss'
 
 interface ThumbnailItemProps {
   slide: any;
@@ -25,16 +25,16 @@ const ThumbnailItem: React.FC<ThumbnailItemProps> = ({
   return (
     <div
       ref={itemRef}
-      className={clsx('thumbnail-item', {
-        active,
-        selected,
+      className={clsx(styles.thumbnailItem, {
+        [styles.active]: active,
+        [styles.selected]: selected,
       })}
       onClick={onClick}
     >
-      <div className={clsx('label', { 'offset-left': index >= 99 })}>
+      <div className={clsx(styles.label, { [styles.offsetLeft]: index >= 99 })}>
         {fillDigit(index + 1, 2)}
       </div>
-      <ThumbnailSlide className="thumbnail" slide={slide} size={120} />
+      <ThumbnailSlide className={styles.thumbnail} slide={slide} size={120} />
     </div>
   )
 }
@@ -66,10 +66,10 @@ const Thumbnails: React.FC<{ className?: string }> = ({ className }) => {
   }
 
   return (
-    <div className={clsx('thumbnails', className)}>
-      <div className="thumbnail-list">
+    <div className={clsx(styles.thumbnails, className)}>
+      <div className={styles.thumbnailList}>
         {slides.map((slide, index) => (
-          <div className="thumbnail-container" key={slide.id}>
+          <div className={styles.thumbnailContainer} key={slide.id}>
             <ThumbnailItem
               slide={slide}
               index={index}

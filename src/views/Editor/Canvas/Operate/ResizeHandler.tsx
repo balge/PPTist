@@ -1,8 +1,7 @@
-import React from "react";
-import type { OperateResizeHandlers } from "@/types/edit";
-import { useMemo } from "react";
-import clsx from "clsx";
-import "./ResizeHandler.scss";
+import React, { useMemo } from 'react'
+import type { OperateResizeHandlers } from '@/types/edit'
+import clsx from 'clsx'
+import styles from './ResizeHandler.module.scss'
 
 interface ResizeHandlerProps {
   type: OperateResizeHandlers;
@@ -18,26 +17,30 @@ const ResizeHandler: React.FC<ResizeHandlerProps> = ({
   onMouseDown,
 }) => {
   const rotateClassName = useMemo(() => {
-    const prefix = "rotate-";
-    const r = rotate;
-    if (r > -22.5 && r <= 22.5) return prefix + 0;
-    else if (r > 22.5 && r <= 67.5) return prefix + 45;
-    else if (r > 67.5 && r <= 112.5) return prefix + 90;
-    else if (r > 112.5 && r <= 157.5) return prefix + 135;
-    else if (r > 157.5 || r <= -157.5) return prefix + 0;
-    else if (r > -157.5 && r <= -112.5) return prefix + 45;
-    else if (r > -112.5 && r <= -67.5) return prefix + 90;
-    else if (r > -67.5 && r <= -22.5) return prefix + 135;
-    return prefix + 0;
-  }, [rotate]);
+    const prefix = 'rotate-'
+    const r = rotate
+    if (r > -22.5 && r <= 22.5) return prefix + 0
+    else if (r > 22.5 && r <= 67.5) return prefix + 45
+    else if (r > 67.5 && r <= 112.5) return prefix + 90
+    else if (r > 112.5 && r <= 157.5) return prefix + 135
+    else if (r > 157.5 || r <= -157.5) return prefix + 0
+    else if (r > -157.5 && r <= -112.5) return prefix + 45
+    else if (r > -112.5 && r <= -67.5) return prefix + 90
+    else if (r > -67.5 && r <= -22.5) return prefix + 135
+    return prefix + 0
+  }, [rotate])
 
   return (
     <div
-      className={clsx("resize-handler", rotateClassName, type)}
+      className={clsx(
+        styles.resizeHandler,
+        styles[rotateClassName],
+        styles[type]
+      )}
       style={style}
       onMouseDown={onMouseDown}
     />
-  );
-};
+  )
+}
 
-export default ResizeHandler;
+export default ResizeHandler

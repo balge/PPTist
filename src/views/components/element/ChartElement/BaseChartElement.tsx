@@ -2,7 +2,7 @@ import React from 'react'
 import type { PPTChartElement } from '@/types/slides'
 import ElementOutline from '@/views/components/element/ElementOutline'
 import Chart from './Chart'
-import './BaseChartElement.scss'
+import styles from './BaseChartElement.module.scss'
 
 interface BaseChartElementProps {
   elementInfo: PPTChartElement;
@@ -11,7 +11,7 @@ interface BaseChartElementProps {
 const BaseChartElement: React.FC<BaseChartElementProps> = ({ elementInfo }) => {
   return (
     <div
-      className="base-element-chart"
+      className={styles.baseElementChart}
       style={{
         top: elementInfo.top + 'px',
         left: elementInfo.left + 'px',
@@ -20,11 +20,11 @@ const BaseChartElement: React.FC<BaseChartElementProps> = ({ elementInfo }) => {
       }}
     >
       <div
-        className="rotate-wrapper"
+        className={styles.rotateWrapper}
         style={{ transform: `rotate(${elementInfo.rotate}deg)` }}
       >
         <div
-          className="element-content"
+          className={styles.elementContent}
           style={{ backgroundColor: elementInfo.fill }}
         >
           <ElementOutline

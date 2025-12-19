@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react'
 import type { PPTAudioElement } from '@/types/slides'
-import './BaseAudioElement.scss'
+import styles from './BaseAudioElement.module.scss'
 import { VolumeNotice } from '@icon-park/react'
 
 interface BaseAudioElementProps {
@@ -13,7 +13,7 @@ const BaseAudioElement: React.FC<BaseAudioElementProps> = ({ elementInfo }) => {
   }, [elementInfo.width, elementInfo.height])
   return (
     <div
-      className="base-element-audio"
+      className={styles.baseElementAudio}
       style={{
         top: elementInfo.top + 'px',
         left: elementInfo.left + 'px',
@@ -22,12 +22,12 @@ const BaseAudioElement: React.FC<BaseAudioElementProps> = ({ elementInfo }) => {
       }}
     >
       <div
-        className="rotate-wrapper"
+        className={styles.rotateWrapper}
         style={{ transform: `rotate(${elementInfo.rotate}deg)` }}
       >
-        <div className="element-content" style={{ color: elementInfo.color }}>
+        <div className={styles.elementContent} style={{ color: elementInfo.color }}>
           <VolumeNotice
-            className="audio-icon"
+            className={styles.audioIcon}
             style={{
               fontSize: audioIconSize,
               color: elementInfo.color,

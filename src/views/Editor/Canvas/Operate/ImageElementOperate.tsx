@@ -8,7 +8,7 @@ import useCommonOperate from '../hooks/useCommonOperate'
 import RotateHandler from './RotateHandler'
 import ResizeHandler from './ResizeHandler'
 import BorderLine from './BorderLine'
-import './ImageElementOperate.scss'
+import styles from './ImageElementOperate.module.scss'
 
 interface ImageElementOperateProps {
   elementInfo: PPTImageElement
@@ -33,7 +33,7 @@ const ImageElementOperate: React.FC<ImageElementOperateProps> = ({
   const { resizeHandlers, borderLines } = useCommonOperate(scaleWidth, scaleHeight)
 
   return (
-    <div className={clsx('image-element-operate', { 'cliping': isCliping })}>
+    <div className={clsx(styles.imageElementOperate, { [styles.cliping]: isCliping })}>
       {borderLines.map(line => (
         <BorderLine 
           key={line.type} 

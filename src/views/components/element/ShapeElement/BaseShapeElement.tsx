@@ -9,7 +9,7 @@ import useElementFill from '@/views/components/element/hooks/useElementFill'
 
 import GradientDefs from './GradientDefs'
 import PatternDefs from './PatternDefs'
-import './BaseShapeElement.scss'
+import styles from './BaseShapeElement.module.scss'
 
 interface BaseShapeElementProps {
   elementInfo: PPTShapeElement;
@@ -39,7 +39,7 @@ const BaseShapeElement: React.FC<BaseShapeElementProps> = ({ elementInfo }) => {
 
   return (
     <div
-      className="base-element-shape"
+      className={styles.baseElementShape}
       style={{
         top: elementInfo.top + 'px',
         left: elementInfo.left + 'px',
@@ -48,11 +48,11 @@ const BaseShapeElement: React.FC<BaseShapeElementProps> = ({ elementInfo }) => {
       }}
     >
       <div
-        className="rotate-wrapper"
+        className={styles.rotateWrapper}
         style={{ transform: `rotate(${elementInfo.rotate}deg)` }}
       >
         <div
-          className="element-content"
+          className={styles.elementContent}
           style={{
             opacity: elementInfo.opacity,
             filter: shadowStyle ? `drop-shadow(${shadowStyle})` : '',
@@ -101,7 +101,7 @@ const BaseShapeElement: React.FC<BaseShapeElementProps> = ({ elementInfo }) => {
             </g>
           </svg>
 
-          <div className={clsx('shape-text', text.align)}>
+          <div className={clsx(styles.shapeText, styles[text.align])}>
             <div
               className="ProseMirror-static"
               dangerouslySetInnerHTML={{ __html: text.content }}

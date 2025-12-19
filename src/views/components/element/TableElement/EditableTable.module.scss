@@ -1,0 +1,96 @@
+@import '@/assets/styles/variable.scss';
+@import '@/assets/styles/mixin.scss';
+
+.editableTable {
+  position: relative;
+  user-select: none;
+}
+table {
+  width: 100%;
+  position: relative;
+  table-layout: fixed;
+  border-collapse: collapse;
+  border-spacing: 0;
+  border: 0;
+  word-wrap: break-word;
+  user-select: none;
+
+  --themeColor: #{$themeColor};
+  --subThemeColor1: #{$themeColor};
+  --subThemeColor2: #{$themeColor};
+
+  &.theme {
+    background-color: #fff;
+
+    tr:nth-child(2n) .cell {
+      background-color: var(--subThemeColor1);
+    }
+    tr:nth-child(2n + 1) .cell {
+      background-color: var(--subThemeColor2);
+    }
+
+    &.rowHeader {
+      tr:first-child .cell {
+        background-color: var(--themeColor);
+      }
+    }
+    &.rowFooter {
+      tr:last-child .cell {
+        background-color: var(--themeColor);
+      }
+    }
+    &.colHeader {
+      tr .cell:first-child {
+        background-color: var(--themeColor);
+      }
+    }
+    &.colFooter {
+      tr .cell:last-child {
+        background-color: var(--themeColor);
+      }
+    }
+  }
+
+  .cell {
+    position: relative;
+    white-space: normal;
+    word-wrap: break-word;
+    vertical-align: middle;
+    font-size: 14px;
+    background-clip: padding-box;
+    cursor: default;
+
+    &.selected::after {
+      content: '';
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      background-color: rgba($color: #666, $alpha: .4);
+    }
+  }
+
+  .cellText {
+    padding: 5px;
+    line-height: 1.5;
+    user-select: none;
+    cursor: text;
+
+    &.active {
+      user-select: text;
+    }
+  }
+}
+
+.dragLine {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background-color: $themeColor;
+  margin-left: -1px;
+  opacity: 0;
+  z-index: 2;
+  cursor: col-resize;
+}

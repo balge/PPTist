@@ -3,7 +3,7 @@ import clsx from 'clsx'
 import type { PPTTextElement } from '@/types/slides'
 import ElementOutline from '@/views/components/element/ElementOutline'
 import useElementShadow from '@/views/components/element/hooks/useElementShadow'
-import './BaseTextElement.scss'
+import styles from './BaseTextElement.module.scss'
 
 interface BaseTextElementProps {
   elementInfo: PPTTextElement;
@@ -18,7 +18,7 @@ const BaseTextElement: React.FC<BaseTextElementProps> = ({
 
   return (
     <div
-      className="base-element-text"
+      className={styles.baseElementText}
       style={{
         top: elementInfo.top + 'px',
         left: elementInfo.left + 'px',
@@ -27,11 +27,11 @@ const BaseTextElement: React.FC<BaseTextElementProps> = ({
       }}
     >
       <div
-        className="rotate-wrapper"
+        className={styles.rotateWrapper}
         style={{ transform: `rotate(${elementInfo.rotate}deg)` }}
       >
         <div
-          className="element-content"
+          className={styles.elementContent}
           style={{
             width: elementInfo.vertical ? 'auto' : elementInfo.width + 'px',
             height: elementInfo.vertical ? elementInfo.height + 'px' : 'auto',
@@ -51,8 +51,8 @@ const BaseTextElement: React.FC<BaseTextElementProps> = ({
             outline={elementInfo.outline}
           />
           <div
-            className={clsx('text', 'ProseMirror-static', {
-              thumbnail: target === 'thumbnail',
+            className={clsx(styles.text, 'ProseMirror-static', {
+              [styles.thumbnail]: target === 'thumbnail',
             })}
             style={
               {

@@ -1,7 +1,7 @@
 import React from 'react'
 import type { PPTElementOutline } from '@/types/slides'
 import useElementOutline from '@/views/components/element/hooks/useElementOutline'
-import './ImagePolygonOutline.scss'
+import styles from './ImagePolygonOutline.module.scss'
 
 interface ImagePolygonOutlineProps {
   width: number
@@ -17,7 +17,7 @@ const ImagePolygonOutline: React.FC<ImagePolygonOutlineProps> = ({ width, height
 
   return (
     <svg 
-      className="image-polygon-outline-svg"
+      className={styles.imagePolygonOutlineSvg}
       width={width}
       height={height}
       overflow="visible"

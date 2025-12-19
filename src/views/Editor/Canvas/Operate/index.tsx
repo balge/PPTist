@@ -1,17 +1,17 @@
-import React, { useMemo } from "react";
-import { useMainStore, useSlidesStore } from "@/store";
-import type { PPTElement } from "@/types/slides";
-import { ElementTypes } from "@/types/slides";
-import type { OperateResizeHandlers, OperateLineHandlers } from "@/types/edit";
+import React, { useMemo } from 'react'
+import { useMainStore, useSlidesStore } from '@/store'
+import { ElementTypes, type PPTElement } from '@/types/slides'
+import type { OperateResizeHandlers, OperateLineHandlers } from '@/types/edit'
 
-import CommonElementOperate from "./CommonElementOperate";
-import ImageElementOperate from "./ImageElementOperate";
-import TextElementOperate from "./TextElementOperate";
-import ShapeElementOperate from "./ShapeElementOperate";
-import LineElementOperate from "./LineElementOperate";
-import TableElementOperate from "./TableElementOperate";
-import LinkHandler from "./LinkHandler";
-import "./index.scss";
+import CommonElementOperate from './CommonElementOperate'
+import ImageElementOperate from './ImageElementOperate'
+import TextElementOperate from './TextElementOperate'
+import ShapeElementOperate from './ShapeElementOperate'
+import LineElementOperate from './LineElementOperate'
+import TableElementOperate from './TableElementOperate'
+import LinkHandler from './LinkHandler'
+import styles from './index.module.scss'
+import clsx from 'clsx'
 
 interface OperateProps {
   elementInfo: PPTElement;
@@ -57,21 +57,21 @@ const Operate: React.FC<OperateProps> = ({
   moveShapeKeypoint = () => {},
   openLinkDialog = () => {},
 }) => {
-  const { canvasScale } = useMainStore();
+  const { canvasScale } = useMainStore()
 
-  const rotate = "rotate" in elementInfo ? elementInfo.rotate || 0 : 0;
-  const { formatedAnimations } = useSlidesStore();
+  const rotate = 'rotate' in elementInfo ? elementInfo.rotate || 0 : 0
+  const { formatedAnimations } = useSlidesStore()
 
   const elementIndexListInAnimation = useMemo<number[]>(() => {
-    const indexList: number[] = [];
+    const indexList: number[] = []
     for (let i = 0; i < formatedAnimations.length; i++) {
-      const elIds = formatedAnimations[i].animations.map((item) => item.elId);
-      if (elIds.includes(elementInfo.id)) indexList.push(i + 1);
+      const elIds = formatedAnimations[i].animations.map((item) => item.elId)
+      if (elIds.includes(elementInfo.id)) indexList.push(i + 1)
     }
-    return indexList;
-  }, [formatedAnimations, elementInfo.id]);
+    return indexList
+  }, [formatedAnimations, elementInfo.id])
 
-  const height = "height" in elementInfo ? elementInfo.height || 0 : 0;
+  const height = 'height' in elementInfo ? elementInfo.height || 0 : 0
 
   const CurrentOperateComponent = useMemo(() => {
     const elementTypeMap = {
@@ -84,11 +84,11 @@ const Operate: React.FC<OperateProps> = ({
       [ElementTypes.LATEX]: CommonElementOperate,
       [ElementTypes.VIDEO]: CommonElementOperate,
       [ElementTypes.AUDIO]: CommonElementOperate,
-    };
-    return elementTypeMap[elementInfo.type] || null;
-  }, [elementInfo.type]);
+    }
+    return elementTypeMap[elementInfo.type] || null
+  }, [elementInfo.type])
 
-  if (!CurrentOperateComponent) return null;
+  if (!CurrentOperateComponent) return null
 
   // Ensure height is at least a small value to avoid 0 height issues for new text elements
   // But actually, for TextElement, if it's auto height, we rely on the elementInfo.height update
@@ -96,16 +96,18 @@ const Operate: React.FC<OperateProps> = ({
   // We can add a min-height for rendering operate frame if it's text and height is 0 (though it should be updated by ResizeObserver)
 
   const displayHeight =
-    height === 0 && elementInfo.type === ElementTypes.TEXT ? 20 : height;
+    height === 0 && elementInfo.type === ElementTypes.TEXT ? 20 : height
 
-  const Component = CurrentOperateComponent as React.FC<any>;
+  const Component = CurrentOperateComponent as React.FC<any>
 
   return (
     <div
-      className={`operate ${isMultiSelect && !isActive ? "multi-select" : ""}`}
+      className={clsx(styles.operate, {
+        [styles.multiSelect]: isMultiSelect && !isActive,
+      })}
       style={{
-        top: elementInfo.top * canvasScale + "px",
-        left: elementInfo.left * canvasScale + "px",
+        top: elementInfo.top * canvasScale + 'px',
+        left: elementInfo.left * canvasScale + 'px',
         transform: `rotate(${rotate}deg)`,
         transformOrigin: `${(elementInfo.width * canvasScale) / 2}px ${
           (displayHeight * canvasScale) / 2
@@ -125,12 +127,13 @@ const Operate: React.FC<OperateProps> = ({
       {isActive && elementInfo.link && (
         <LinkHandler
           elementInfo={elementInfo}
+          // @ts-ignore
           link={elementInfo.link}
           openLinkDialog={openLinkDialog}
         />
       )}
     </div>
-  );
-};
+  )
+}
 
-export default Operate;
+export default Operate

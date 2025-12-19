@@ -8,7 +8,7 @@ import React, {
 import { useKeyboardStore, useSlidesStore } from '@/store'
 import type { CreateCustomShapeData } from '@/types/edit'
 import { KEYS } from '@/configs/hotkey'
-import './ShapeCreateCanvas.scss'
+import styles from './ShapeCreateCanvas.module.scss'
 
 interface ShapeCreateCanvasProps {
   onCreated: (payload: CreateCustomShapeData) => void;
@@ -174,7 +174,7 @@ const ShapeCreateCanvas: React.FC<ShapeCreateCanvasProps> = ({
 
   return (
     <div
-      className="shape-create-canvas"
+      className={styles.shapeCreateCanvas}
       ref={shapeCanvasRef}
       onMouseDown={(e) => {
         e.stopPropagation()

@@ -1,7 +1,7 @@
 import React from 'react'
 import type { PPTElementOutline } from '@/types/slides'
 import useElementOutline from '@/views/components/element/hooks/useElementOutline'
-import './ImageEllipseOutline.scss'
+import styles from './ImageEllipseOutline.module.scss'
 
 interface ImageEllipseOutlineProps {
   width: number;
@@ -21,7 +21,7 @@ const ImageEllipseOutline: React.FC<ImageEllipseOutlineProps> = ({
 
   return (
     <svg
-      className="image-ellipse-outline-svg"
+      className={styles.imageEllipseOutlineSvg}
       width={width}
       height={height}
       overflow="visible"

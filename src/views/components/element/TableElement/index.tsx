@@ -4,7 +4,7 @@ import type { PPTTableElement, TableCell } from '@/types/slides'
 import useHistorySnapshot from '@/hooks/useHistorySnapshot'
 
 import EditableTable from './EditableTable'
-import './index.scss'
+import styles from './index.module.scss'
 import type { ContextmenuItem } from '@/components/Contextmenu/types'
 import useContextMenu from '@/hooks/useContextMenu'
 
@@ -135,7 +135,7 @@ const TableElement: React.FC<ElementProps> = ({
 
   return (
     <div
-      className="editable-element-table"
+      className={styles.editableElementTable}
       ref={elementRef}
       style={{
         top: element.top + 'px',
@@ -144,10 +144,10 @@ const TableElement: React.FC<ElementProps> = ({
       }}
     >
       <div
-        className="rotate-wrapper"
+        className={styles.rotateWrapper}
         style={{ transform: `rotate(${element.rotate}deg)` }}
       >
-        <div ref={contentRef} className="element-content">
+        <div ref={contentRef} className={styles.elementContent}>
           <EditableTable
             data={element.data}
             width={element.width}
@@ -163,14 +163,14 @@ const TableElement: React.FC<ElementProps> = ({
           />
           {!editable && (
             <div
-              className="table-mask"
+              className={styles.tableMask}
               onDoubleClick={startEdit}
               onMouseDown={handleSelectElement}
               onTouchStart={handleSelectElement}
             >
               {handleElementId === element.id && (
                 <div
-                  className="mask-tip"
+                  className={styles.maskTip}
                   style={{ transform: `scale(${1 / canvasScale})` }}
                 >
                   双击编辑

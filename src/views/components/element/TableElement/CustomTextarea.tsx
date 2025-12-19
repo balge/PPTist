@@ -1,10 +1,10 @@
-import React, { useRef, useState, useEffect } from 'react'
+import React, { useRef, useEffect } from 'react'
 import {
   pasteCustomClipboardString,
   pasteExcelClipboardString,
   pasteHTMLTableClipboardString,
 } from '@/utils/clipboard'
-import './CustomTextarea.scss'
+import styles from './CustomTextarea.module.scss'
 import clsx from 'clsx'
 
 interface CustomTextareaProps {
@@ -43,10 +43,6 @@ const CustomTextarea: React.FC<CustomTextareaProps> = ({
   const handleFocus = () => {
     isFocus.current = true
 
-    if (!textareaRef.current) return
-
-    // React's onPaste might be sufficient, but original code attached it manually.
-    // Let's use React's onPaste prop for better integration.
   }
 
   const handlePaste = (e: React.ClipboardEvent) => {
@@ -93,7 +89,7 @@ const CustomTextarea: React.FC<CustomTextareaProps> = ({
 
   return (
     <div
-      className={clsx('custom-textarea', className)}
+      className={clsx(styles.customTextarea, className)}
       style={style}
       ref={textareaRef}
       contentEditable={true}

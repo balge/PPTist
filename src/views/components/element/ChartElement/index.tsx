@@ -3,7 +3,7 @@ import type { PPTChartElement } from '@/types/slides'
 import emitter, { EmitterEvents } from '@/utils/emitter'
 import ElementOutline from '@/views/components/element/ElementOutline'
 import Chart from './Chart'
-import './index.scss'
+import styles from './index.module.scss'
 import type { ContextmenuItem } from '@/components/Contextmenu/types'
 import useContextMenu from '@/hooks/useContextMenu'
 
@@ -39,7 +39,7 @@ const ChartElement: React.FC<ElementProps> = ({
 
   return (
     <div
-      className="editable-element-chart"
+      className={styles.editableElementChart}
       style={{
         top: elementInfo.top + 'px',
         left: elementInfo.left + 'px',
@@ -48,12 +48,12 @@ const ChartElement: React.FC<ElementProps> = ({
       }}
     >
       <div
-        className="rotate-wrapper"
+        className={styles.rotateWrapper}
         style={{ transform: `rotate(${elementInfo.rotate}deg)` }}
       >
         <div
           ref={contentRef}
-          className="element-content"
+          className={styles.elementContent}
           style={{ backgroundColor: elementInfo.fill }}
           onMouseDown={handleSelectElement}
           onTouchStart={handleSelectElement}

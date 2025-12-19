@@ -4,7 +4,7 @@ import { getLineElementPath } from '@/utils/element'
 import useElementShadow from '@/views/components/element/hooks/useElementShadow'
 
 import LinePointMarker from './LinePointMarker'
-import './BaseLineElement.scss'
+import styles from './BaseLineElement.module.scss'
 
 interface BaseLineElementProps {
   elementInfo: PPTLineElement;
@@ -49,14 +49,14 @@ const BaseLineElement: React.FC<BaseLineElementProps> = ({ elementInfo }) => {
 
   return (
     <div
-      className="base-element-line"
+      className={styles.baseElementLine}
       style={{
         top: elementInfo.top + 'px',
         left: elementInfo.left + 'px',
       }}
     >
       <div
-        className="element-content"
+        className={styles.elementContent}
         style={{ filter: shadowStyle ? `drop-shadow(${shadowStyle})` : '' }}
       >
         <svg overflow="visible" width={svgWidth} height={svgHeight}>

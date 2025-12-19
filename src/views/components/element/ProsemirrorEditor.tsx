@@ -35,7 +35,7 @@ import { setListStyle } from '@/utils/prosemirror/commands/setListStyle'
 import { replaceText } from '@/utils/prosemirror/commands/replaceText'
 import type { TextFormatPainterKeys } from '@/types/edit'
 import { KEYS } from '@/configs/hotkey'
-import './ProsemirrorEditor.scss'
+import styles from './ProsemirrorEditor.module.scss'
 
 interface ProsemirrorEditorProps {
   elementId: string;
@@ -488,9 +488,9 @@ const ProsemirrorEditor = forwardRef<
 
     return (
       <div
-        className={clsx('prosemirror-editor', {
-          'format-painter': textFormatPainter,
-          className,
+        className={clsx(styles.prosemirrorEditor, {
+          [styles.formatPainter]: textFormatPainter,
+          [className as string]: className,
         })}
         ref={editorViewRef}
         onMouseDown={onMouseDown}

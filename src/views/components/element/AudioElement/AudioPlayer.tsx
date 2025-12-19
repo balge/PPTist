@@ -7,7 +7,7 @@ import React, {
   forwardRef,
 } from 'react'
 import clsx from 'clsx'
-import './AudioPlayer.scss'
+import styles from './AudioPlayer.module.scss'
 import { Pause, PlayOne, VolumeMute, VolumeNotice, VolumeSmall } from '@icon-park/react'
 
 export interface AudioPlayerRef {
@@ -228,7 +228,7 @@ const AudioPlayer = forwardRef<AudioPlayerRef, AudioPlayerProps>(
 
     return (
       <div
-        className={clsx('audio-player', className)}
+        className={clsx(styles.audioPlayer, className)}
         style={{
           transform: `scale(${1 / scale})`,
           ...style,
@@ -236,7 +236,7 @@ const AudioPlayer = forwardRef<AudioPlayerRef, AudioPlayerProps>(
         onMouseDown={onMouseDown}
       >
         <audio
-          className="audio"
+          className={styles.audio}
           ref={audioRef}
           src={src}
           autoPlay={autoplay}
@@ -248,16 +248,16 @@ const AudioPlayer = forwardRef<AudioPlayerRef, AudioPlayerProps>(
           onError={handleError}
         ></audio>
 
-        <div className="controller">
-          <div className="icons">
-            <div className="icon play-icon" onClick={toggle}>
-              <span className="icon-content">
+        <div className={styles.controller}>
+          <div className={styles.icons}>
+            <div className={clsx(styles.icon, styles.playIcon)} onClick={toggle}>
+              <span className={styles.iconContent}>
                 {paused ? <PlayOne /> : <Pause />}
               </span>
             </div>
-            <div className="volume">
-              <div className="icon volume-icon" onClick={toggleVolume}>
-                <span className="icon-content">
+            <div className={styles.volume}>
+              <div className={clsx(styles.icon, styles.volumeIcon)} onClick={toggleVolume}>
+                <span className={styles.iconContent}>
                   {volume === 0 ? (
                     <VolumeMute />
                   ) : volume === 1 ? (
@@ -268,30 +268,30 @@ const AudioPlayer = forwardRef<AudioPlayerRef, AudioPlayerProps>(
                 </span>
               </div>
               <div
-                className="volume-bar-wrap"
+                className={styles.volumeBarWrap}
                 onMouseDown={handleMousedownVolumeBar}
                 onTouchStart={handleMousedownVolumeBar}
                 onClick={handleClickVolumeBar}
               >
-                <div className="volume-bar" ref={volumeBarRef}>
+                <div className={styles.volumeBar} ref={volumeBarRef}>
                   <div
-                    className="volume-bar-inner"
+                    className={styles.volumeBarInner}
                     style={{ width: volumeBarWidth }}
                   >
-                    <span className="thumb"></span>
+                    <span className={styles.thumb}></span>
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <span className="time">
-            <span className="ptime">{ptime}</span> /{' '}
-            <span className="dtime">{dtime}</span>
+          <span className={styles.time}>
+            <span className={styles.ptime}>{ptime}</span> /{' '}
+            <span className={styles.dtime}>{dtime}</span>
           </span>
 
           <div
-            className="bar-wrap"
+            className={styles.barWrap}
             ref={playBarWrapRef}
             onMouseDown={handleMousedownPlayBar}
             onTouchStart={handleMousedownPlayBar}
@@ -300,15 +300,15 @@ const AudioPlayer = forwardRef<AudioPlayerRef, AudioPlayerProps>(
             onMouseLeave={() => setPlayBarTimeVisible(false)}
           >
             <div
-              className={clsx('bar-time', { hidden: !playBarTimeVisible })}
+              className={clsx(styles.barTime, { [styles.barTimeHidden]: !playBarTimeVisible })}
               style={{ left: playBarTimeLeft }}
             >
               {playBarTime}
             </div>
-            <div className="bar">
-              <div className="loaded" style={{ width: loadedBarWidth }}></div>
-              <div className="played" style={{ width: playedBarWidth }}>
-                <span className="thumb"></span>
+            <div className={styles.bar}>
+              <div className={styles.loaded} style={{ width: loadedBarWidth }}></div>
+              <div className={styles.played} style={{ width: playedBarWidth }}>
+                <span className={styles.thumb}></span>
               </div>
             </div>
           </div>

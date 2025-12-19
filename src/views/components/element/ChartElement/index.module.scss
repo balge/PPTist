@@ -1,0 +1,16 @@
+@import '@/assets/styles/variable.scss';
+@import '@/assets/styles/mixin.scss';
+
+.editableElementChart {
+  position: absolute;
+}
+.rotateWrapper {
+  width: 100%;
+  height: 100%;
+}
+.elementContent {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  cursor: move;
+}

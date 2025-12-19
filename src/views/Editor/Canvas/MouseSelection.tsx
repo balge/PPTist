@@ -1,6 +1,6 @@
 import React from 'react'
 import clsx from 'clsx'
-import './MouseSelection.scss'
+import styles from './MouseSelection.module.scss'
 
 interface MouseSelectionProps {
   top: number
@@ -19,7 +19,7 @@ const MouseSelection: React.FC<MouseSelectionProps> = ({
 }) => {
   return (
     <div 
-      className={clsx('mouse-selection', `quadrant-${quadrant}`)}
+      className={clsx(styles.mouseSelection, styles[`quadrant${quadrant}`])}
       style={{
         top: top + 'px',
         left: left + 'px',

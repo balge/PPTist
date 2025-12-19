@@ -1,7 +1,7 @@
 import React, { useRef } from 'react'
 import type { PPTLatexElement } from '@/types/slides'
 import emitter, { EmitterEvents } from '@/utils/emitter'
-import './index.scss'
+import styles from './index.module.scss'
 import type { ContextmenuItem } from '@/components/Contextmenu/types'
 import useContextMenu from '@/hooks/useContextMenu'
 
@@ -38,7 +38,7 @@ const LatexElement: React.FC<ElementProps> = ({
 
   return (
     <div
-      className="editable-element-latex"
+      className={styles.editableElementLatex}
       style={{
         top: elementInfo.top + 'px',
         left: elementInfo.left + 'px',
@@ -47,12 +47,12 @@ const LatexElement: React.FC<ElementProps> = ({
       }}
     >
       <div
-        className="rotate-wrapper"
+        className={styles.rotateWrapper}
         style={{ transform: `rotate(${elementInfo.rotate}deg)` }}
       >
         <div
           ref={contentRef}
-          className="element-content"
+          className={styles.elementContent}
           onMouseDown={handleSelectElement}
           onTouchStart={handleSelectElement}
           onDoubleClick={openLatexEditor}

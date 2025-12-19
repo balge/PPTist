@@ -2,7 +2,7 @@ import React from 'react'
 import { useSlidesStore } from '@/store'
 import type { PPTVideoElement } from '@/types/slides'
 import VideoPlayer from './VideoPlayer'
-import './ScreenVideoElement.scss'
+import styles from './ScreenVideoElement.module.scss'
 
 interface ScreenVideoElementProps {
   elementInfo: PPTVideoElement
@@ -19,7 +19,7 @@ const ScreenVideoElement: React.FC<ScreenVideoElementProps> = ({ elementInfo, sc
 
   return (
     <div 
-      className="base-element-video screen-element-video"
+      className={styles.screenElementVideo}
       style={{
         top: elementInfo.top + 'px',
         left: elementInfo.left + 'px',
@@ -28,10 +28,10 @@ const ScreenVideoElement: React.FC<ScreenVideoElementProps> = ({ elementInfo, sc
       }}
     >
       <div
-        className="rotate-wrapper"
+        className={styles.rotateWrapper}
         style={{ transform: `rotate(${elementInfo.rotate}deg)` }}
       >
-        <div className="element-content">
+        <div className={styles.elementContent}>
           <VideoPlayer
             width={elementInfo.width}
             height={elementInfo.height}

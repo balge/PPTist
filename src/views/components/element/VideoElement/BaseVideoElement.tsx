@@ -1,6 +1,6 @@
 import React from 'react'
 import type { PPTVideoElement } from '@/types/slides'
-import './BaseVideoElement.scss'
+import styles from './BaseVideoElement.module.scss'
 import { PlayOne } from '@icon-park/react'
 
 interface BaseVideoElementProps {
@@ -10,7 +10,7 @@ interface BaseVideoElementProps {
 const BaseVideoElement: React.FC<BaseVideoElementProps> = ({ elementInfo }) => {
   return (
     <div
-      className="base-element-video"
+      className={styles.baseElementVideo}
       style={{
         top: elementInfo.top + 'px',
         left: elementInfo.left + 'px',
@@ -19,18 +19,18 @@ const BaseVideoElement: React.FC<BaseVideoElementProps> = ({ elementInfo }) => {
       }}
     >
       <div
-        className="rotate-wrapper"
+        className={styles.rotateWrapper}
         style={{ transform: `rotate(${elementInfo.rotate}deg)` }}
       >
         <div
-          className="element-content"
+          className={styles.elementContent}
           style={{
             backgroundImage: elementInfo.poster
               ? `url(${elementInfo.poster})`
               : '',
           }}
         >
-          <div className="icon">
+          <div className={styles.icon}>
             <PlayOne />
           </div>
         </div>

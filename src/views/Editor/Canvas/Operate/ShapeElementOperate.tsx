@@ -8,7 +8,7 @@ import useCommonOperate from '../hooks/useCommonOperate'
 import RotateHandler from './RotateHandler'
 import ResizeHandler from './ResizeHandler'
 import BorderLine from './BorderLine'
-import './ShapeElementOperate.scss'
+import styles from './ShapeElementOperate.module.scss'
 
 interface ShapeElementOperateProps {
   elementInfo: PPTShapeElement
@@ -61,7 +61,7 @@ const ShapeElementOperate: React.FC<ShapeElementOperateProps> = ({
   }, [elementInfo, canvasScale])
 
   return (
-    <div className="shape-element-operate">
+    <div className={styles.shapeElementOperate}>
       {borderLines.map(line => (
         <BorderLine 
           key={line.type} 
@@ -93,7 +93,7 @@ const ShapeElementOperate: React.FC<ShapeElementOperateProps> = ({
           {keypoints.map((item, index) => (
             <div 
               key={index}
-              className="operate-keypoint-handler"
+              className={styles.operateKeypointHandler}
               style={item.styles}
               onMouseDown={(e) => {
                 e.stopPropagation()

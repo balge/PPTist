@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react'
+import React, { useMemo } from 'react'
 import { useMainStore } from '@/store'
 import type { PPTElement } from '@/types/slides'
 import { getElementListRange } from '@/utils/element'
@@ -7,7 +7,7 @@ import useCommonOperate from '../hooks/useCommonOperate'
 
 import ResizeHandler from './ResizeHandler'
 import BorderLine from './BorderLine'
-import './MultiSelectOperate.scss'
+import styles from './MultiSelectOperate.module.scss'
 
 interface MultiSelectOperateProps {
   elementList: PPTElement[]
@@ -43,7 +43,7 @@ const MultiSelectOperate: React.FC<MultiSelectOperateProps> = ({ elementList, sc
 
   return (
     <div 
-      className="multi-select-operate"
+      className={styles.multiSelectOperate}
       style={{
         left: range.minX * canvasScale + 'px',
         top: range.minY * canvasScale + 'px',

@@ -1,0 +1,29 @@
+@import '@/assets/styles/variable.scss';
+@import '@/assets/styles/mixin.scss';
+
+.editableElementImage {
+  position: absolute;
+}
+.rotateWrapper {
+  width: 100%;
+  height: 100%;
+}
+.elementContent {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  cursor: move;
+
+  .imageContent {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    position: relative;
+  }
+  img {
+    position: absolute;
+  }
+}
+.colorMask {
+  @include absolute-0();
+}

@@ -1,7 +1,7 @@
 import React from 'react'
 import type { PPTTableElement } from '@/types/slides'
 import StaticTable from './StaticTable'
-import './BaseTableElement.scss'
+import styles from './BaseTableElement.module.scss'
 
 interface BaseTableElementProps {
   elementInfo: PPTTableElement
@@ -10,7 +10,7 @@ interface BaseTableElementProps {
 const BaseTableElement: React.FC<BaseTableElementProps> = ({ elementInfo }) => {
   return (
     <div 
-      className="base-element-table"
+      className={styles.baseElementTable}
       style={{
         top: elementInfo.top + 'px',
         left: elementInfo.left + 'px',
@@ -18,10 +18,10 @@ const BaseTableElement: React.FC<BaseTableElementProps> = ({ elementInfo }) => {
       }}
     >
       <div
-        className="rotate-wrapper"
+        className={styles.rotateWrapper}
         style={{ transform: `rotate(${elementInfo.rotate}deg)` }}
       >
-        <div className="element-content">
+        <div className={styles.elementContent}>
           <StaticTable
             data={elementInfo.data}
             width={elementInfo.width}

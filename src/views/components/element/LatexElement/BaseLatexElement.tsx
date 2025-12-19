@@ -1,6 +1,6 @@
 import React from 'react'
 import type { PPTLatexElement } from '@/types/slides'
-import './BaseLatexElement.scss'
+import styles from './BaseLatexElement.module.scss'
 
 interface BaseLatexElementProps {
   elementInfo: PPTLatexElement;
@@ -9,7 +9,7 @@ interface BaseLatexElementProps {
 const BaseLatexElement: React.FC<BaseLatexElementProps> = ({ elementInfo }) => {
   return (
     <div
-      className="base-element-latex"
+      className={styles.baseElementLatex}
       style={{
         top: elementInfo.top + 'px',
         left: elementInfo.left + 'px',
@@ -18,10 +18,10 @@ const BaseLatexElement: React.FC<BaseLatexElementProps> = ({ elementInfo }) => {
       }}
     >
       <div
-        className="rotate-wrapper"
+        className={styles.rotateWrapper}
         style={{ transform: `rotate(${elementInfo.rotate}deg)` }}
       >
-        <div className="element-content">
+        <div className={styles.elementContent}>
           <svg
             overflow="visible"
             width={elementInfo.width}

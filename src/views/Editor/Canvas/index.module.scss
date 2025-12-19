@@ -1,0 +1,24 @@
+@import '@/assets/styles/variable.scss';
+@import '@/assets/styles/mixin.scss';
+
+.canvas {
+  height: 100%;
+  user-select: none;
+  overflow: hidden;
+  background-color: $lightGray;
+  position: relative;
+}
+.dragMask {
+  cursor: grab;
+  @include absolute-0();
+}
+.viewportWrapper {
+  position: absolute;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.01), 0 0 12px 0 rgba(0, 0, 0, 0.1);
+}
+.viewport {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+}

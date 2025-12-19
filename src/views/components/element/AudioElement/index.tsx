@@ -2,7 +2,7 @@ import React, { useMemo, useRef } from 'react'
 import { useMainStore, useSlidesStore } from '@/store'
 import type { PPTAudioElement } from '@/types/slides'
 import AudioPlayer from './AudioPlayer'
-import './index.scss'
+import styles from './index.module.scss'
 import type { ContextmenuItem } from '@/components/Contextmenu/types'
 import { VolumeNotice } from '@icon-park/react'
 import useContextMenu from '@/hooks/useContextMenu'
@@ -80,7 +80,7 @@ const AudioElement: React.FC<ElementProps> = ({
 
   return (
     <div
-      className="editable-element-audio"
+      className={styles.editableElementAudio}
       style={{
         top: elementInfo.top + 'px',
         left: elementInfo.left + 'px',
@@ -89,23 +89,23 @@ const AudioElement: React.FC<ElementProps> = ({
       }}
     >
       <div
-        className="rotate-wrapper"
+        className={styles.rotateWrapper}
         style={{ transform: `rotate(${elementInfo.rotate}deg)` }}
       >
         <div
           ref={contentRef}
-          className="element-content"
+          className={styles.elementContent}
           onMouseDown={(e) => handleSelectElement(e)}
           onTouchStart={(e) => handleSelectElement(e)}
         >
           <VolumeNotice
-            className="audio-icon"
+            className={styles.audioIcon}
             style={{ fontSize: audioIconSize, color: elementInfo.color }}
           />
 
           {handleElementId === elementInfo.id && (
             <AudioPlayer
-              className="audio-player"
+              className={styles.audioPlayer}
               style={{ ...audioPlayerPosition }}
               src={elementInfo.src}
               loop={elementInfo.loop}

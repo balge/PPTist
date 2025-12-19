@@ -1,7 +1,7 @@
 import React from 'react'
 import type { PPTElementOutline } from '@/types/slides'
 import useElementOutline from '@/views/components/element/hooks/useElementOutline'
-import './ImageRectOutline.scss'
+import styles from './ImageRectOutline.module.scss'
 
 interface ImageRectOutlineProps {
   width: number
@@ -17,7 +17,7 @@ const ImageRectOutline: React.FC<ImageRectOutlineProps> = ({ width, height, outl
 
   return (
     <svg 
-      className="image-rect-outline-svg"
+      className={styles.imageRectOutlineSvg}
       width={width}
       height={height}
       overflow="visible"

@@ -4,7 +4,7 @@ import type { PPTLineElement } from '@/types/slides'
 import { OperateLineHandlers } from '@/types/edit'
 
 import ResizeHandler from './ResizeHandler'
-import './LineElementOperate.scss'
+import styles from './LineElementOperate.module.scss'
 
 interface LineElementOperateProps {
   elementInfo: PPTLineElement;
@@ -91,7 +91,7 @@ const LineElementOperate: React.FC<LineElementOperateProps> = ({
   }, [elementInfo, canvasScale])
 
   return (
-    <div className="line-element-operate">
+    <div className={styles.lineElementOperate}>
       {handlerVisible && (
         <>
           {resizeHandlers.map((point) => (
@@ -117,14 +117,14 @@ const LineElementOperate: React.FC<LineElementOperateProps> = ({
             {elementInfo.curve && (
               <g>
                 <line
-                  className="anchor-line"
+                  className={styles.anchorLine}
                   x1={elementInfo.start[0]}
                   y1={elementInfo.start[1]}
                   x2={elementInfo.curve[0]}
                   y2={elementInfo.curve[1]}
                 ></line>
                 <line
-                  className="anchor-line"
+                  className={styles.anchorLine}
                   x1={elementInfo.end[0]}
                   y1={elementInfo.end[1]}
                   x2={elementInfo.curve[0]}
@@ -137,7 +137,7 @@ const LineElementOperate: React.FC<LineElementOperateProps> = ({
                 <g key={index}>
                   {index === 0 && (
                     <line
-                      className="anchor-line"
+                      className={styles.anchorLine}
                       x1={elementInfo.start[0]}
                       y1={elementInfo.start[1]}
                       x2={item[0]}
@@ -146,7 +146,7 @@ const LineElementOperate: React.FC<LineElementOperateProps> = ({
                   )}
                   {index === 1 && (
                     <line
-                      className="anchor-line"
+                      className={styles.anchorLine}
                       x1={elementInfo.end[0]}
                       y1={elementInfo.end[1]}
                       x2={item[0]}

@@ -19,7 +19,7 @@ import { createRoot } from 'react-dom/client'
 import Contextmenu from '@/components/Contextmenu'
 
 import CustomTextarea from './CustomTextarea'
-import './EditableTable.scss'
+import styles from './EditableTable.module.scss'
 
 interface EditableTableProps {
   data: TableCell[][];
@@ -316,7 +316,7 @@ const EditableTable: React.FC<EditableTableProps> = ({
   const focusActiveCell = () => {
     requestAnimationFrame(() => {
       const textRef = document.querySelector(
-        '.cell-text.active'
+        `.${styles.cellText}.${styles.active}`
       ) as HTMLDivElement | null
       if (textRef) textRef.focus()
     })
@@ -794,16 +794,16 @@ const EditableTable: React.FC<EditableTableProps> = ({
 
   return (
     <div
-      className="editable-table"
+      className={styles.editableTable}
       style={{ width: totalWidth + 'px' }}
       onMouseDown={onMouseDown}
     >
       {editable && (
-        <div className="handler">
+        <div className={styles.handler}>
           {dragLinePosition.map((pos, index) => (
             <div
               key={index}
-              className="drag-line"
+              className={styles.dragLine}
               style={{ left: pos + 'px' }}
               onMouseDown={(e) => handleMousedownColHandler(e, index)}
             />
@@ -812,11 +812,11 @@ const EditableTable: React.FC<EditableTableProps> = ({
       )}
       <table
         className={clsx({
-          theme: theme,
-          'row-header': theme?.rowHeader,
-          'row-footer': theme?.rowFooter,
-          'col-header': theme?.colHeader,
-          'col-footer': theme?.colFooter,
+          [styles.theme]: theme,
+          [styles.rowHeader]: theme?.rowHeader,
+          [styles.rowFooter]: theme?.rowFooter,
+          [styles.colHeader]: theme?.colHeader,
+          [styles.colFooter]: theme?.colFooter,
         })}
         style={themeStyle}
       >
@@ -839,9 +839,9 @@ const EditableTable: React.FC<EditableTableProps> = ({
                 return (
                   <td
                     key={cell.id}
-                    className={clsx('cell', {
-                      selected: isSelected,
-                      active: isActive,
+                    className={clsx(styles.cell, {
+                      [styles.selected]: isSelected,
+                      [styles.active]: isActive,
                     })}
                     style={{
                       borderStyle: outline.style,
@@ -864,7 +864,7 @@ const EditableTable: React.FC<EditableTableProps> = ({
                   >
                     {isActive ? (
                       <CustomTextarea
-                        className={clsx('cell-text', { active: true })}
+                        className={clsx(styles.cellText, { [styles.active]: true })}
                         style={{ minHeight: cellMinHeight - 4 + 'px' }}
                         value={cell.text}
                         onUpdateValue={(value) =>
@@ -876,7 +876,7 @@ const EditableTable: React.FC<EditableTableProps> = ({
                       />
                     ) : (
                       <div
-                        className="cell-text"
+                        className={styles.cellText}
                         style={{ minHeight: cellMinHeight - 4 + 'px' }}
                         dangerouslySetInnerHTML={{
                           __html: formatText(cell.text),

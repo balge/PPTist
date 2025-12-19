@@ -7,7 +7,7 @@ import React, {
 } from 'react'
 import clsx from 'clsx'
 import useMSE from './useMSE'
-import './index.scss'
+import styles from './index.module.scss'
 import {
   Pause,
   PlayOne,
@@ -288,7 +288,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
   return (
     <div
-      className={clsx('video-player', { 'hide-controller': hideController })}
+      className={clsx(styles.videoPlayer, { [styles.hideController]: hideController })}
       style={{
         width: width * scale + 'px',
         height: height * scale + 'px',
@@ -297,12 +297,12 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       onMouseMove={autoHideController}
       onClick={autoHideController}
     >
-      <div className="video-wrap" onClick={toggle}>
-        {loadError && <div className="load-error">视频加载失败</div>}
+      <div className={styles.videoWrap} onClick={toggle}>
+        {loadError && <div className={styles.loadError}>视频加载失败</div>}
 
-        <canvas ref={bgCanvasRef} className="bg-canvas"></canvas>
+        <canvas ref={bgCanvasRef} className={styles.bgCanvas}></canvas>
         <video
-          className="video"
+          className={styles.video}
           ref={videoRef}
           src={src}
           autoPlay={autoplay}
@@ -320,10 +320,10 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
           onPause={() => autoHideController()}
           onError={handleError}
         ></video>
-        <div className="bezel">
+        <div className={styles.bezel}>
           <span
-            className={clsx('bezel-icon', {
-              'bezel-transition': bezelTransition,
+            className={clsx(styles.bezelIcon, {
+              [styles.bezelTransition]: bezelTransition,
             })}
             onAnimationEnd={() => setBezelTransition(false)}
           >
@@ -332,29 +332,29 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         </div>
       </div>
 
-      <div className="controller-mask"></div>
-      <div className="controller">
-        <div className="icons icons-left">
+      <div className={styles.controllerMask}></div>
+      <div className={styles.controller}>
+        <div className={styles.icons}>
           <div
-            className="icon play-icon"
+            className={clsx(styles.icon, styles.playIcon)}
             onClick={(e) => {
               e.stopPropagation()
               toggle()
             }}
           >
-            <span className="icon-content">
+            <span className={styles.iconContent}>
               {paused ? <PlayOne /> : <Pause />}
             </span>
           </div>
-          <div className="volume">
+          <div className={styles.volume}>
             <div
-              className="icon volume-icon"
+              className={clsx(styles.icon, styles.volumeIcon)}
               onClick={(e) => {
                 e.stopPropagation()
                 toggleVolume()
               }}
             >
-              <span className="icon-content">
+              <span className={styles.iconContent}>
                 {volume === 0 ? (
                   <VolumeMute />
                 ) : volume === 1 ? (
@@ -365,7 +365,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
               </span>
             </div>
             <div
-              className="volume-bar-wrap"
+              className={styles.volumeBarWrap}
               onMouseDown={(e) => {
                 e.stopPropagation()
                 handleMousedownVolumeBar()
@@ -379,30 +379,30 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
                 handleClickVolumeBar(e)
               }}
             >
-              <div className="volume-bar" ref={volumeBarRef}>
+              <div className={styles.volumeBar} ref={volumeBarRef}>
                 <div
-                  className="volume-bar-inner"
+                  className={styles.volumeBarInner}
                   style={{ width: volumeBarWidth }}
                 >
-                  <span className="thumb"></span>
+                  <span className={styles.thumb}></span>
                 </div>
               </div>
             </div>
           </div>
-          <span className="time">
-            <span className="ptime">{ptime}</span> /{' '}
-            <span className="dtime">{dtime}</span>
+          <span className={styles.time}>
+            <span className={styles.ptime}>{ptime}</span> /{' '}
+            <span className={styles.dtime}>{dtime}</span>
           </span>
         </div>
 
-        <div className="icons icons-right">
-          <div className="speed">
+        <div className={clsx(styles.icons, styles.iconsRight)}>
+          <div className={styles.speed}>
             <div
-              className="icon speed-icon"
+              className={clsx(styles.icon, styles.speedIcon)}
               onMouseLeave={() => setSpeedMenuVisible(false)}
             >
               <span
-                className="icon-content"
+                className={styles.iconContent}
                 onClick={(e) => {
                   e.stopPropagation()
                   setSpeedMenuVisible(!speedMenuVisible)
@@ -411,12 +411,12 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
                 {playbackRate === 1 ? '倍速' : playbackRate + 'x'}
               </span>
               {speedMenuVisible && (
-                <div className="speed-menu">
+                <div className={styles.speedMenu}>
                   {speedOptions.map((item) => (
                     <div
                       key={item.label}
-                      className={clsx('speed-menu-item', {
-                        active: item.value === playbackRate,
+                      className={clsx(styles.speedMenuItem, {
+                        [styles.speedMenuItemActive]: item.value === playbackRate,
                       })}
                       onClick={(e) => {
                         e.stopPropagation()
@@ -432,20 +432,20 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
             </div>
           </div>
           <div
-            className="loop"
+            className={styles.loop}
             onClick={(e) => {
               e.stopPropagation()
               toggleLoop()
             }}
           >
-            <div className={clsx('icon loop-icon', { active: loop })}>
-              <span className="icon-content">循环{loop ? '开' : '关'}</span>
+            <div className={clsx(styles.icon, styles.loopIcon, { [styles.iconActive]: loop })}>
+              <span className={styles.iconContent}>循环{loop ? '开' : '关'}</span>
             </div>
           </div>
         </div>
 
         <div
-          className="bar-wrap"
+          className={styles.barWrap}
           ref={playBarWrapRef}
           onMouseDown={(e) => {
             e.stopPropagation()
@@ -461,15 +461,15 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
           onClick={(e) => e.stopPropagation()}
         >
           <div
-            className={clsx('bar-time', { hidden: !playBarTimeVisible })}
+            className={clsx(styles.barTime, { [styles.barTimeHidden]: !playBarTimeVisible })}
             style={{ left: playBarTimeLeft }}
           >
             {playBarTime}
           </div>
-          <div className="bar">
-            <div className="loaded" style={{ width: loadedBarWidth }}></div>
-            <div className="played" style={{ width: playedBarWidth }}>
-              <span className="thumb"></span>
+          <div className={styles.bar}>
+            <div className={styles.loaded} style={{ width: loadedBarWidth }}></div>
+            <div className={styles.played} style={{ width: playedBarWidth }}>
+              <span className={styles.thumb}></span>
             </div>
           </div>
         </div>

@@ -1,0 +1,25 @@
+@import '@/assets/styles/variable.scss';
+@import '@/assets/styles/mixin.scss';
+.mouseSelection {
+  position: absolute;
+  background-color: rgba($themeColor, 0.1);
+  border: 1px solid $themeColor;
+  z-index: 200;
+}
+
+.quadrant1 {
+  transform-origin: 50% 0;
+  transform: rotate(180deg);
+}
+.quadrant2 {
+  transform-origin: 0 0;
+  transform: rotate(180deg);
+}
+.quadrant3 {
+  transform-origin: 0 50%;
+  transform: rotate(180deg);
+}
+.quadrant4 {
+  transform-origin: 0 0;
+  transform: rotate(0deg);
+}

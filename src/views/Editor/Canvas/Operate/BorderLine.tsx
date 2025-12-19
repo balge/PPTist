@@ -1,7 +1,7 @@
 import React from 'react'
 import clsx from 'clsx'
 import type { OperateBorderLines } from '@/types/edit'
-import './BorderLine.scss'
+import styles from './BorderLine.module.scss'
 
 interface BorderLineProps {
   type: OperateBorderLines;
@@ -16,7 +16,7 @@ const BorderLine: React.FC<BorderLineProps> = ({
 }) => {
   return (
     <div
-      className={clsx('border-line', type, { wide: isWide })}
+      className={clsx(styles.borderLine, styles[type], { [styles.wide]: isWide })}
       style={style}
     />
   )

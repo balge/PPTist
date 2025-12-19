@@ -11,7 +11,7 @@ import useFilter from './useFilter'
 
 import ImageOutline from './ImageOutline'
 import ImageClipHandler from './ImageClipHandler'
-import './index.scss'
+import styles from './index.module.scss'
 import useContextMenu from '@/hooks/useContextMenu'
 
 export interface ElementProps {
@@ -110,7 +110,7 @@ const ImageElement: React.FC<ElementProps> = ({
 
   return (
     <div
-      className="editable-element-image"
+      className={styles.editableElementImage}
       style={{
         top: elementInfo.top + 'px',
         left: elementInfo.left + 'px',
@@ -119,7 +119,7 @@ const ImageElement: React.FC<ElementProps> = ({
       }}
     >
       <div
-        className="rotate-wrapper"
+        className={styles.rotateWrapper}
         style={{ transform: `rotate(${elementInfo.rotate}deg)` }}
       >
         {isCliping ? (
@@ -137,7 +137,7 @@ const ImageElement: React.FC<ElementProps> = ({
         ) : (
           <div
             ref={contentRef}
-            className="element-content"
+            className={styles.elementContent}
             style={{
               filter: shadowStyle ? `drop-shadow(${shadowStyle})` : '',
               transform: flipStyle,
@@ -148,7 +148,7 @@ const ImageElement: React.FC<ElementProps> = ({
             <ImageOutline elementInfo={elementInfo} />
 
             <div
-              className="image-content"
+              className={styles.imageContent}
               style={{ clipPath: clipShape.style }}
             >
               <img
@@ -166,7 +166,7 @@ const ImageElement: React.FC<ElementProps> = ({
               />
               {elementInfo.colorMask && (
                 <div
-                  className="color-mask"
+                  className={styles.colorMask}
                   style={{
                     backgroundColor: elementInfo.colorMask,
                   }}

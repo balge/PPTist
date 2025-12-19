@@ -1,0 +1,21 @@
+@import '@/assets/styles/variable.scss';
+@import '@/assets/styles/mixin.scss';
+
+.editableElementLatex {
+  position: absolute;
+}
+.rotateWrapper {
+  width: 100%;
+  height: 100%;
+}
+.elementContent {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  cursor: move;
+
+  svg {
+    transform-origin: 0 0;
+    overflow: visible;
+  }
+}

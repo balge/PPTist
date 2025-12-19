@@ -1,0 +1,34 @@
+@import '@/assets/styles/variable.scss';
+@import '@/assets/styles/mixin.scss';
+
+.operate {
+  position: absolute;
+  z-index: 100;
+  user-select: none;
+  pointer-events: none;
+
+  &.multiSelect {
+    opacity: 0.2;
+  }
+}
+.animationIndex {
+  position: absolute;
+  top: 0;
+  left: -24px;
+  font-size: 12px;
+
+  .indexItem {
+    width: 18px;
+    height: 18px;
+    background-color: #fff;
+    color: $themeColor;
+    border: 1px solid $themeColor;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    & + .indexItem {
+      margin-top: 5px;
+    }
+  }
+}

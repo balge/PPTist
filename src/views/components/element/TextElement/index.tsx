@@ -6,6 +6,7 @@ import React, {
   useMemo,
 } from 'react'
 import { debounce } from 'lodash'
+import clsx from 'clsx'
 import { useMainStore, useSlidesStore } from '@/store'
 import type { PPTTextElement } from '@/types/slides'
 import useElementShadow from '@/views/components/element/hooks/useElementShadow'
@@ -13,7 +14,7 @@ import useHistorySnapshot from '@/hooks/useHistorySnapshot'
 
 import ElementOutline from '@/views/components/element/ElementOutline'
 import ProsemirrorEditor from '@/views/components/element/ProsemirrorEditor'
-import './index.scss'
+import styles from './index.module.scss'
 import type { ContextmenuItem } from '@/components/Contextmenu/types'
 import useContextMenu from '@/hooks/useContextMenu'
 
@@ -155,7 +156,7 @@ const TextElement: React.FC<ElementProps> = ({
 
   return (
     <div
-      className="editable-element-text"
+      className={styles.editableElementText}
       style={{
         top: element.top + 'px',
         left: element.left + 'px',
@@ -164,11 +165,11 @@ const TextElement: React.FC<ElementProps> = ({
       }}
     >
       <div
-        className="rotate-wrapper"
+        className={styles.rotateWrapper}
         style={{ transform: `rotate(${element.rotate}deg)` }}
       >
         <div
-          className="element-content"
+          className={styles.elementContent}
           ref={elementRef}
           style={{
             width: element.vertical ? 'auto' : element.width + 'px',
@@ -191,7 +192,7 @@ const TextElement: React.FC<ElementProps> = ({
             outline={element.outline}
           />
           <ProsemirrorEditor
-            className="text"
+            className={styles.text}
             elementId={element.id}
             defaultColor={element.defaultColor}
             defaultFontName={element.defaultFontName}
@@ -210,8 +211,8 @@ const TextElement: React.FC<ElementProps> = ({
             onMouseDown={(e) => handleSelectElement(e, false)}
           />
 
-          <div className="drag-handler top"></div>
-          <div className="drag-handler bottom"></div>
+          <div className={clsx(styles.dragHandler, styles.top)}></div>
+          <div className={clsx(styles.dragHandler, styles.bottom)}></div>
         </div>
       </div>
     </div>

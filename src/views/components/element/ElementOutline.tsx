@@ -1,7 +1,7 @@
 import React from 'react'
 import type { PPTElementOutline } from '@/types/slides'
 import useElementOutline from '@/views/components/element/hooks/useElementOutline'
-import './ElementOutline.scss'
+import styles from './ElementOutline.module.scss'
 
 interface ElementOutlineProps {
   width: number
@@ -16,7 +16,7 @@ const ElementOutline: React.FC<ElementOutlineProps> = ({ width, height, outline 
 
   return (
     <svg 
-      className="element-outline-svg"
+      className={styles.elementOutlineSvg}
       width={width}
       height={height}
       overflow="visible"

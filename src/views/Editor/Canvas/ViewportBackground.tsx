@@ -2,7 +2,7 @@ import React from 'react'
 import { useMainStore, useSlidesStore } from '@/store'
 import GridLines from './GridLines'
 import useSlideBackgroundStyle from '@/hooks/useSlideBackgroundStyle'
-import './ViewportBackground.scss'
+import styles from './ViewportBackground.module.scss'
 
 const ViewportBackground: React.FC = () => {
   const { gridLineSize } = useMainStore()
@@ -13,7 +13,7 @@ const ViewportBackground: React.FC = () => {
 
   return (
     <div 
-      className="viewport-background"
+      className={styles.viewportBackground}
       style={backgroundStyle}
     >
       {gridLineSize > 0 && <GridLines />}

@@ -4,7 +4,7 @@ import type { PPTElementOutline, TableCell, TableTheme } from '@/types/slides'
 import { getTextStyle, formatText } from './utils'
 import useHideCells from './useHideCells'
 import useSubThemeColor from './useSubThemeColor'
-import './StaticTable.scss'
+import styles from './StaticTable.module.scss'
 
 interface StaticTableProps {
   data: TableCell[][]
@@ -47,16 +47,16 @@ const StaticTable: React.FC<StaticTableProps> = ({
 
   return (
     <div 
-      className="static-table"
+      className={styles.staticTable}
       style={{ width: totalWidth + 'px' }}
     >
       <table
         className={clsx({
-          'theme': theme,
-          'row-header': theme?.rowHeader,
-          'row-footer': theme?.rowFooter,
-          'col-header': theme?.colHeader,
-          'col-footer': theme?.colFooter,
+          [styles.theme]: theme,
+          [styles.rowHeader]: theme?.rowHeader,
+          [styles.rowFooter]: theme?.rowFooter,
+          [styles.colHeader]: theme?.colHeader,
+          [styles.colFooter]: theme?.colFooter,
         })}
         style={themeStyle}
       >
@@ -74,7 +74,7 @@ const StaticTable: React.FC<StaticTableProps> = ({
                 return (
                   <td 
                     key={cell.id}
-                    className="cell"
+                    className={styles.cell}
                     style={{
                       borderStyle: outline.style,
                       borderColor: outline.color,
@@ -85,7 +85,7 @@ const StaticTable: React.FC<StaticTableProps> = ({
                     colSpan={cell.colspan}
                   >
                     <div 
-                      className="cell-text" 
+                      className={styles.cellText} 
                       style={{ minHeight: (cellMinHeight - 4) + 'px' }} 
                       dangerouslySetInnerHTML={{ __html: formatText(cell.text) }} 
                     />

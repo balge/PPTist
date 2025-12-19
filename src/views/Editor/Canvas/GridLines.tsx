@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react'
 import tinycolor from 'tinycolor2'
 import { useMainStore, useSlidesStore } from '@/store'
-import './GridLines.scss'
+import styles from './GridLines.module.scss'
 
 const GridLines: React.FC = () => {
   const { canvasScale, gridLineSize } = useMainStore()
@@ -36,7 +36,7 @@ const GridLines: React.FC = () => {
   }, [viewportSize, viewportRatio, gridLineSize])
 
   return (
-    <svg className="grid-lines">
+    <svg className={styles.gridLines}>
       <path
         style={{
           transform: `scale(${canvasScale})`,
